@@ -121,8 +121,9 @@ app.controller('MotionController', function($scope, $ionicPlatform, $cordovaDevi
         $scope.watch = $cordovaDeviceMotion.watchAcceleration($scope.options);
         $scope.watch2 = $deviceGyroscope.watch($scope.options);
 
+
+      function checkLocation(callback){
         var watchOptions = {
-            frequency : 100,
             timeout : 3000,
             enableHighAccuracy : false
         // may cause errors if true
@@ -142,6 +143,8 @@ app.controller('MotionController', function($scope, $ionicPlatform, $cordovaDevi
             $scope.measurements.test = speedG;
         });
 
+      }
+        setInterval( function(){ Geolocation.checkLocation( $scope.callback ); }, 1000);
         // Device motion initilaization
         $scope.watch.then(null, function(error) {
           console.log('Error');

@@ -144,7 +144,7 @@ app.controller('MotionController', function($scope, $ionicPlatform, $cordovaDevi
         });
 
       }
-        setInterval( function(){ Geolocation.checkLocation( $scope.callback ); }, 1000);
+        setInterval( function(){ Geolocation.checkLocation( $scope.callback );}, 1000);
         // Device motion initilaization
         $scope.watch.then(null, function(error) {
           console.log('Error');

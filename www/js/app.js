@@ -130,7 +130,7 @@ app.controller('MotionController', function($scope, $ionicPlatform, $cordovaDevi
 
         $scope.watch3 = $cordovaGeolocation.watchPosition(watchOptions);
 
-        $scope.watch3.then(function() { /* Not  used */ },function(err) {
+        $scope.interval = setInterval( function(){ $scope.watch3.then(function() { /* Not  used */ },function(err) {
             // An error occurred.
             alert('code: '    + err.code    + '\n' +
                 'message: ' + err.message + '\n');
@@ -140,7 +140,8 @@ app.controller('MotionController', function($scope, $ionicPlatform, $cordovaDevi
             var speedG = position.coords.latitude;
             speedList.push(speedG.toFixed(2));
             $scope.measurements.test = speedG;
-        });
+        }); }, 1000);
+        
 
         // Device motion initilaization
         $scope.watch.then(null, function(error) {
@@ -377,6 +378,7 @@ app.controller('MotionController', function($scope, $ionicPlatform, $cordovaDevi
       $scope.watch.clearWatch();
       $scope.watch2.clearWatch();
       $scope.watch3.clearWatch();
+      clearInterval(  $scope.interval ) ;
       $scope.measurements.cnt = cnt = 0;
       $scope.measurements.sum = sum3 = 0;
       $scope.measurements.sumU = sum6 = 0;

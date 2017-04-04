@@ -64,19 +64,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
        * smoother estimates, but have higher latency.
        * This only works for the `Madgwick` filter.
        */
-      beta: beta
-    });
-    var posOptions = { timeout: 10000, enableHighAccuracy: false };
-    $cordovaGeolocation.getCurrentPosition(posOptions).then(function (position) {
-      var lat = position.coords.latitude;
-      var long = position.coords.longitude;
-      var altitude = position.coords.altitude;
-      var accuracy = position.coords.accuracy;
-      var heading = position.coords.heading;
-      var velocity = position.coords.velocity;
-      var altitudeAccuracy = position.coords.altitudeAccuracy;
-    }, function (err) {
-      // error
+      beta
     });
     var x_a, y_a, z_a, timestamp, x_g, y_g, z_g, date, timestamp2, initQ, tmpQ, cnt = 0,
       sum3 = 0,

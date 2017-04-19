@@ -11,7 +11,7 @@
   
 ## Get Started
 1. cordova plugin add cordova-plugin-device-motion
-2. cordova plugin add cordova-plugin-gyroscope@0.1.4
+2. cordova plugin add cordova-plugin-gyroscope
 3. cordova plugin add cordova-plugin-whitelist
 4. cordova plugin add ionic-plugin-keyboard
 5. cordova platform add android

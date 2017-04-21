@@ -179,9 +179,9 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
             if (!!accQueue[Math.round(MaxQueue / 6) - 1]) {
               speedQueue.push(accQueue[Math.round(MaxQueue / 6) - 1] - accQueue[Math.round(MaxQueue / 6) - 2]);
-              // acc = (speedQueue.reduce(function(a, b) {
-              //   return a + b;
-              // })) * (3600 / 1000);
+              acc = (speedQueue.reduce(function(a, b) {
+                return a + b;
+              })) * (3600 / 1000);
 
               accQueue.shift();
             }

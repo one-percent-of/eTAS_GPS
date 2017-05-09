@@ -125,9 +125,11 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           }, function (position) {
             // Active updates of the position here
             // position.coords.[ latitude / longitude]
-            var speedG = position.coords.latitude;
+            var speedG = position.coords.speed;
+            var timeG = position.timestamp;
             speedList.push(speedG.toFixed(2));
             $scope.measurements.test = speedG;
+            $scope.measurements.time = timeG;
           });
         }, 1000);
         // Device motion initilaization
@@ -307,6 +309,53 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
                 }, function (error) {
                   console.log("Error:", error);
                 });
+              }
+            }
+
+                        //급진로변경
+            if(speed >= 30){
+              if(Math.abs(angularVel) >= 10){
+                if(acc <= 2) {
+
+                }
+              }
+            }
+            //급앞지르기
+            if(speed >= 30){
+              if(Math.abs(angularVel) >= 10){
+                if(acc >= 3){
+
+                }
+              }
+            }
+            //과속
+            if(speed >= 30){
+            }
+            //장기과속
+            if(speed >= 30 && cnt - judgeTime6 > secondCnt*180){
+            }
+            //급가속
+            if(speed >= 6){
+                if(acc >= 8){
+
+                }
+            }
+            //급출발
+            if(speed <= 5){
+              if(acc >= 8){
+                
+              }
+            }
+            //급감속
+            if(speed >= 6){
+                if(acc <= -8){
+
+                }
+            }
+            //급정지
+            if(speed <= 5){
+              if(acc <= -8){
+                
               }
             }
 

@@ -340,23 +340,26 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
                 }
             }
+
+            //급정지
+            if(speed <= 5){
+              if(acc <= -8){
+                
+              }
+            }
+            
             //급출발
             if(speed <= 5){
               if(acc >= 8){
                 
               }
             }
+            
             //급감속
             if(speed >= 6){
                 if(acc <= -8){
 
                 }
-            }
-            //급정지
-            if(speed <= 5){
-              if(acc <= -8){
-                
-              }
             }
 
 

@@ -312,57 +312,6 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
               }
             }
 
-                        //급진로변경
-            if(speed >= 30){
-              if(Math.abs(angularVel) >= 10){
-                if(acc <= 2) {
-
-                }
-              }
-            }
-            //급앞지르기
-            if(speed >= 30){
-              if(Math.abs(angularVel) >= 10){
-                if(acc >= 3){
-
-                }
-              }
-            }
-            //과속
-            if(speed >= 30){
-            }
-            //장기과속
-            if(speed >= 30 && cnt - judgeTime6 > secondCnt*180){
-            }
-            //급가속
-            if(speed >= 6){
-                if(acc >= 8){
-
-                }
-            }
-
-            //급정지
-            if(speed <= 5){
-              if(acc <= -8){
-                
-              }
-            }
-            
-            //급출발
-            if(speed <= 5){
-              if(acc >= 8){
-                
-              }
-            }
-            
-            //급감속
-            if(speed >= 6){
-                if(acc <= -8){
-
-                }
-            }
-
-
             rotationAng.push(sum3.toFixed(2));
             uturnAng.push(sum6.toFixed(2));
             rotationCntL.push(judgeCnt3L);

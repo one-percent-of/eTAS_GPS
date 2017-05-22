@@ -138,7 +138,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
       timeout: 3000,
       maximumAge: 0
     };
-    setInterval(function() {
+    $scope.interval = setInterval(function() {
       $cordovaGeolocation.getCurrentPosition(posOptions).then(function(position) {
         inputLat = position.coords.latitude;
         long = position.coords.longitude;
@@ -540,6 +540,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
       $scope.watch.clearWatch();
       $scope.watch2.clearWatch();
+      clearInterval($scope.interval);
       $scope.measurements.cnt = cnt = 0;
       $scope.measurements.sum = sum3 = 0;
       $scope.measurements.sumU = sum6 = 0;
@@ -618,6 +619,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
   $scope.$on('$ionicView.beforeLeave', function () {
     $scope.watch.clearWatch(); // Turn off motion detection watcher
     $scope.watch2.clearWatch(); // Turn off motion detection watcher
+    clearInterval($scope.interval);
   });
 
 });

@@ -91,6 +91,8 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
       judgeCntCF = 0,
       speed = 0,
       acc = 0,
+      accG = 0,
+      timeG = 0,
       angularVel = 0,
       angularVelFor5 = 0,
       CntLSL = 0,
@@ -115,6 +117,8 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
     var accQueue = [];
     var speedList = [];
     var accList = [];
+    var speedGQueue = [];
+    var timeGQueue = [];
     const calTime = 6000;
     const secondCnt = (1000 / $scope.options.frequency);
 
@@ -122,69 +126,88 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
     $scope.startWatching = function () {
       if (cnt == 0) {
 
-         var inputLat;
-    var long;
-    var gpsSpeed = 0;
-    var accuracy;
-    var myLatlng;
-    var pointList = [];
+        var inputLat;
+        var long;
+        var gpsSpeed = 0;
+        var accuracy;
+        var myLatlng;
+        var pointList = [];
 
-    $ionicLoading.show({
-      template: '<ion-spinner icon="bubbles"></ion-spinner><br/>Acquiring location!'
-    });
-
-    var posOptions = {
-      enableHighAccuracy: true,
-      timeout: 3000,
-      maximumAge: 0
-    };
-    $scope.interval = setInterval(function() {
-      $cordovaGeolocation.getCurrentPosition(posOptions).then(function(position) {
-        inputLat = position.coords.latitude;
-        long = position.coords.longitude;
-        gpsSpeed = position.coords.speed;
-        gpsSpeed *= 3.6;
-        //accuracy = position.coords.accuracy;
-        myLatlng = new google.maps.LatLng(inputLat, long);
-        pointList.push({
-          lat: inputLat,
-          lng: long
+        $ionicLoading.show({
+          template: '<ion-spinner icon="bubbles"></ion-spinner><br/>Acquiring location!'
         });
 
-        $scope.measurements.speedG = gpsSpeed.toFixed(2);
-        $scope.measurements.timestamp = position.timestamp;
-        $ionicLoading.hide();
-
-        var mapOptions = {
-          center: myLatlng,
-          zoom: 16,
-          mapTypeId: google.maps.MapTypeId.ROADMAP
+        var posOptions = {
+          enableHighAccuracy: true,
+          timeout: 3000,
+          maximumAge: 0
         };
-        var polyOption = {
-          path: pointList,
-          geodesic: true,
-          strokeColor: 'red',
-          strokeOpacity: 1.0,
-          strokeWeight: 3.0,
-          icons: [{ //방향을 알기 위한 화살표 표시
-            icon: {
-              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
-            },
-            offset: '100%',
-            repeat: '150px'
-          }]
-        }
+        $scope.interval = setInterval(function () {
+          $cordovaGeolocation.getCurrentPosition(posOptions).then(function (position) {
+            inputLat = position.coords.latitude;
+            long = position.coords.longitude;
+            gpsSpeed = position.coords.speed;
+            gpsSpeed *= 3.6;
+            //accuracy = position.coords.accuracy;
+            myLatlng = new google.maps.LatLng(inputLat, long);
+            pointList.push({
+              lat: inputLat,
+              lng: long
+            });
 
-        var map = new google.maps.Map(document.getElementById("pathmap"), mapOptions);
-        var poly = new google.maps.Polyline(polyOption);
-        poly.setMap(map);
-        $scope.map = map;
+            $scope.measurements.timestamp = position.timestamp;
+            if (gpsSpeed != 0) {
+              speedGQueue.push(gpsSpeed);
+              timeGQueue.push(position.timestamp);
+            }
+            if (!!speedGQueue[1]) {
 
-      }, function(err) {
-        $ionicLoading.hide();
-        console.log(err);
-      });
-    }, 1000);
+              accG = (speedGQueue[1] - speedGQueue[0]);
+
+              speedGQueue.shift();
+            }
+            if (!!timeGQueue[1]) {
+
+              timeG = (timeGQueue[1] - timeGQueue[0]) / (1000 * 3600);
+
+              timeGQueue.shift();
+            }
+
+            $scope.measurements.speedG = speedGQueue[0];
+            $scope.measurements.accG = accG/timeG;
+
+            $ionicLoading.hide();
+
+            var mapOptions = {
+              center: myLatlng,
+              zoom: 16,
+              mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            var polyOption = {
+              path: pointList,
+              geodesic: true,
+              strokeColor: 'red',
+              strokeOpacity: 1.0,
+              strokeWeight: 3.0,
+              icons: [{ //방향을 알기 위한 화살표 표시
+                icon: {
+                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+                },
+                offset: '100%',
+                repeat: '150px'
+              }]
+            }
+
+            var map = new google.maps.Map(document.getElementById("pathmap"), mapOptions);
+            var poly = new google.maps.Polyline(polyOption);
+            poly.setMap(map);
+            $scope.map = map;
+
+          }, function (err) {
+            $ionicLoading.hide();
+            console.log(err);
+          });
+        }, 1000);
 
 
         var MaxQueue = ($scope.measurements.second * 200) / $scope.options.frequency;
@@ -454,7 +477,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
               CntLSL++;
 
-              if (cnt - judgeTimeLSL > secondCnt * 3 && CntLSL >= secondCnt*20) {
+              if (cnt - judgeTimeLSL > secondCnt * 3 && CntLSL >= secondCnt * 20) {
                 judgeCntLSL++;
                 judgeTimeLSL = cnt;
                 obj.LSL = judgeCntLSL;

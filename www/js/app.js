@@ -32,6 +32,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
   // Watcher object
   $scope.watch = null;
   $scope.watch2 = null;
+  $scope.watch3 = null;
 
 
   var ref = firebase.database().ref();
@@ -39,7 +40,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
   var obj = $firebaseObject(ref2);
   const beta = 0.033;
   const gravity = 9.80665;
-  const speedLimit = 25;
+  const speedLimit = 90;
 
 
   // var obj2 = $firebaseObject(ref);
@@ -95,6 +96,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
       timeG = 0,
       angularVel = 0,
       angularVelFor5 = 0,
+      angularVel_cur = 0,
       CntLSL = 0,
       errorAngle3 = errorAngle6 = false;
     var sensorQueue = [];
@@ -117,6 +119,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
     var accQueue = [];
     var speedList = [];
     var accList = [];
+    var angularList = [];
     var speedGQueue = [];
     var timeGQueue = [];
     const calTime = 6000;
@@ -138,7 +141,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
         });
 
         var posOptions = {
-          enableHighAccuracy: true,
+          enableHighAccuracy: false,
           timeout: 3000,
           maximumAge: 0
         };
@@ -148,18 +151,27 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           long = position.coords.longitude;
           gpsSpeed = position.coords.speed;
           gpsSpeed *= 3.6;
-          //accuracy = position.coords.accuracy;
+          accuracy = position.coords.accuracy;
           myLatlng = new google.maps.LatLng(inputLat, long);
           pointList.push({
             lat: inputLat,
             lng: long
           });
-
+          $scope.measurements.test = gpsSpeed;
           $scope.measurements.timestamp = position.timestamp;
           if (gpsSpeed != 0) {
             speedGQueue.push(gpsSpeed);
             timeGQueue.push(position.timestamp);
           }
+
+          if (gpsSpeed) {
+
+            speedGQueue.push(0);
+            timeGQueue.push(position.timestamp);
+          }
+
+
+
           if (!!speedGQueue[1]) {
 
             accG = (speedGQueue[1] - speedGQueue[0]);
@@ -168,14 +180,14 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           }
           if (!!timeGQueue[1]) {
 
-            timeG = (timeGQueue[1] - timeGQueue[0]) / (1000 * 3600);
+            timeG = (timeGQueue[1] - timeGQueue[0]) / 1000;
 
             timeGQueue.shift();
           }
 
-          $scope.measurements.speedG = speedGQueue[0];
-          $scope.measurements.accG = accG;
 
+          accList.push(accG);
+          speedList.push(speedGQueue[0]);
           $ionicLoading.hide();
 
           var mapOptions = {
@@ -215,12 +227,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           timeout: 3000
         };
 
-        var wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
-
-        $scope.interval = setInterval(function () {
-          wpid;
-        }, 1000);
-
+        $scope.watch3 = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
 
 
         var MaxQueue = ($scope.measurements.second * 200) / $scope.options.frequency;
@@ -280,19 +287,6 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
 
 
-            //acc calculate
-            if (!!accQueue[10]) {
-              acc = (accQueue[10] - accQueue[0]) * (3600 / 1000);
-              accList.push(acc.toFixed(2));
-              accQueue.shift();
-              obj.accVel = Math.round(acc);
-              obj.$save().then(function (ref) {
-                ref.key() === obj.$id; // true
-              }, function (error) {
-                console.log("Error:", error);
-              });
-            }
-
             //speed calculate
             let sum = acc / secondCnt;
             speed += sum;
@@ -326,6 +320,11 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
               sensorQueue.shift();
             }
 
+
+            //angularVel_cur calculate
+            angularVel_cur = compareQueue[MaxQueue - 1] - compareQueue[MaxQueue - 1 - Math.round(MaxQueue * (5 / 6))];
+
+            angularList.push(angularVel_cur.toFixed(2));
 
             //angularVel calculate
 
@@ -364,7 +363,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
 
             //rotation judge
-            if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3 && speed > 25) {
+            if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3 && speedGQueue[0] > 30) {
 
               if (sum3 < -60 && sum3 > -120) {
                 judgeCnt3L++;
@@ -393,7 +392,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             }
 
             //uturn judge
-            if (cnt - judgeTime6 > MaxQueue && !errorAngle6 && speed > 20) {
+            if (cnt - judgeTime6 > MaxQueue && !errorAngle6 && speedGQueue[0] > 25) {
 
               if (Math.abs(sum6) > 160 && Math.abs(sum6) < 180) {
                 judgeCnt6++;
@@ -409,7 +408,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             }
 
             //급가속
-            if (cnt - judgeTimeAcc > MaxQueue && speed >= 6 && acc >= 8) {
+            if (cnt - judgeTimeAcc > MaxQueue && speedGQueue[0] >= 6 && accG >= 8) {
               judgeCntAcc++;
               judgeTimeAcc = cnt;
               obj.acc = judgeCntAcc;
@@ -420,7 +419,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
               });
             }
             //급출발
-            if (cnt - judgeTimeStart > secondCnt && speed <= 5 && acc >= 8) {
+            if (cnt - judgeTimeStart > secondCnt && speedGQueue[0] <= 5 && accG >= 10) {
               judgeCntStart++;
               judgeTimeStart = cnt;
               obj.start = judgeCntStart;
@@ -432,7 +431,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             }
 
             //급감속
-            if (cnt - judgeTimeDcc > MaxQueue && speed >= 6 && acc <= -14) {
+            if (cnt - judgeTimeDcc > MaxQueue && speedGQueue[0] >= 6 && accG <= -14) {
               judgeCntDcc++;
               judgeTimeDcc = cnt;
               obj.dcc = judgeCntDcc;
@@ -444,7 +443,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             }
 
             //급정지
-            if (cnt - judgeTimeStop > secondCnt && speed <= 5 && acc <= -14) {
+            if (cnt - judgeTimeStop > secondCnt && speedGQueue[0] <= 5 && accG <= -14) {
               judgeCntStop++;
               judgeTimeStop = cnt;
               obj.stop = judgeCntStop;
@@ -456,11 +455,11 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             }
 
             //급진로변경 && 급앞지르기
-            if (speed >= 20 && Math.abs(angularVel) >= 10 && Math.abs(angularVelFor5) <= 2) {
-              if (acc <= 2)
+            if (speedGQueue[0] >= 30 && Math.abs(angularVel) >= 10 && Math.abs(angularVelFor5) <= 2) {
+              if (Math.abs(accG) <= 2)
                 judgeCntCC++;
 
-              if (acc >= 3)
+              if (accG >= 3)
                 judgeCntCF++;
 
               obj.CC = judgeCntCC;
@@ -474,7 +473,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             }
 
             //과속
-            if (cnt - judgeTimeSL > secondCnt * 3 && speed >= speedLimit) {
+            if (cnt - judgeTimeSL > secondCnt * 3 && speedGQueue[0] >= speedLimit) {
               judgeCntSL++;
               judgeTimeSL = cnt;
               obj.SL = judgeCntSL;
@@ -486,7 +485,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             }
 
             //장기과속
-            if (speed >= speedLimit) {
+            if (speedGQueue[0] >= speedLimit) {
 
               CntLSL++;
 
@@ -528,10 +527,9 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
           }
 
-          //$scope.measurements.test = angularVelFor5.toFixed(2);
-          $scope.measurements.acc = acc.toFixed(2);
-          $scope.measurements.speed = speed.toFixed(2);
-          $scope.measurements.ang = angularVel.toFixed(2);
+          $scope.measurements.speedG = speedGQueue[0];
+          $scope.measurements.accG = accG;
+          $scope.measurements.ang = angularVel_cur.toFixed(2);
           $scope.measurements.cnt = cnt;
           $scope.measurements.alertAcc = judgeCntAcc;
           $scope.measurements.alertStart = judgeCntStart;
@@ -544,10 +542,6 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           $scope.measurements.alertL = judgeCnt3L;
           $scope.measurements.alertR = judgeCnt3R;
           $scope.measurements.alertU = judgeCnt6;
-          // $scope.measurements.sum = sum3.toFixed(2);
-          // $scope.measurements.sumU = sum6.toFixed(2);
-          // $scope.measurements.error3 = errorAngle3;
-          // $scope.measurements.error6 = errorAngle6;
 
 
 
@@ -576,10 +570,13 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
       $scope.watch.clearWatch();
       $scope.watch2.clearWatch();
-      clearInterval($scope.interval);
+      navigator.geolocation.clearWatch($scope.watch3);
+
       $scope.measurements.cnt = cnt = 0;
       $scope.measurements.sum = sum3 = 0;
       $scope.measurements.sumU = sum6 = 0;
+      $scope.measurements.speedG = speedGQueue[0] = 0;
+      $scope.measurements.accG = accG = 0;
       $scope.measurements.alertL = judgeCnt3L = obj.rotationL = 0;
       $scope.measurements.alertR = judgeCnt3R = obj.rotationR = 0;
       $scope.measurements.alertU = judgeCnt6 = obj.uturn = 0;
@@ -612,6 +609,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
         uturnErr,
         speedList,
         accList,
+        angularList,
         SLCnt,
         LSLCnt,
         AccCnt,
@@ -636,6 +634,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
       uturnErr = [];
       speedList = [];
       accList = [];
+      angularList = [];
       SLCnt = [];
       LSLCnt = [];
       AccCnt = [];
@@ -655,7 +654,6 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
   $scope.$on('$ionicView.beforeLeave', function () {
     $scope.watch.clearWatch(); // Turn off motion detection watcher
     $scope.watch2.clearWatch(); // Turn off motion detection watcher
-    clearInterval($scope.interval);
   });
 
 });

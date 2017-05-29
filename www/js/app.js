@@ -142,72 +142,85 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           timeout: 3000,
           maximumAge: 0
         };
-        $scope.interval = setInterval(function () {
-          $cordovaGeolocation.getCurrentPosition(posOptions).then(function (position) {
-            inputLat = position.coords.latitude;
-            long = position.coords.longitude;
-            gpsSpeed = position.coords.speed;
-            gpsSpeed *= 3.6;
-            //accuracy = position.coords.accuracy;
-            myLatlng = new google.maps.LatLng(inputLat, long);
-            pointList.push({
-              lat: inputLat,
-              lng: long
-            });
+        function geo_success(position) {
 
-            $scope.measurements.timestamp = position.timestamp;
-            if (gpsSpeed != 0) {
-              speedGQueue.push(gpsSpeed);
-              timeGQueue.push(position.timestamp);
-            }
-            if (!!speedGQueue[1]) {
-
-              accG = (speedGQueue[1] - speedGQueue[0]);
-
-              speedGQueue.shift();
-            }
-            if (!!timeGQueue[1]) {
-
-              timeG = (timeGQueue[1] - timeGQueue[0]) / (1000 * 3600);
-
-              timeGQueue.shift();
-            }
-
-            $scope.measurements.speedG = speedGQueue[0];
-            $scope.measurements.accG = accG/timeG;
-
-            $ionicLoading.hide();
-
-            var mapOptions = {
-              center: myLatlng,
-              zoom: 16,
-              mapTypeId: google.maps.MapTypeId.ROADMAP
-            };
-            var polyOption = {
-              path: pointList,
-              geodesic: true,
-              strokeColor: 'red',
-              strokeOpacity: 1.0,
-              strokeWeight: 3.0,
-              icons: [{ //방향을 알기 위한 화살표 표시
-                icon: {
-                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
-                },
-                offset: '100%',
-                repeat: '150px'
-              }]
-            }
-
-            var map = new google.maps.Map(document.getElementById("pathmap"), mapOptions);
-            var poly = new google.maps.Polyline(polyOption);
-            poly.setMap(map);
-            $scope.map = map;
-
-          }, function (err) {
-            $ionicLoading.hide();
-            console.log(err);
+          inputLat = position.coords.latitude;
+          long = position.coords.longitude;
+          gpsSpeed = position.coords.speed;
+          gpsSpeed *= 3.6;
+          //accuracy = position.coords.accuracy;
+          myLatlng = new google.maps.LatLng(inputLat, long);
+          pointList.push({
+            lat: inputLat,
+            lng: long
           });
+
+          $scope.measurements.timestamp = position.timestamp;
+          if (gpsSpeed != 0) {
+            speedGQueue.push(gpsSpeed);
+            timeGQueue.push(position.timestamp);
+          }
+          if (!!speedGQueue[1]) {
+
+            accG = (speedGQueue[1] - speedGQueue[0]);
+
+            speedGQueue.shift();
+          }
+          if (!!timeGQueue[1]) {
+
+            timeG = (timeGQueue[1] - timeGQueue[0]) / (1000 * 3600);
+
+            timeGQueue.shift();
+          }
+
+          $scope.measurements.speedG = speedGQueue[0];
+          $scope.measurements.accG = accG;
+
+          $ionicLoading.hide();
+
+          var mapOptions = {
+            center: myLatlng,
+            zoom: 16,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+          };
+          var polyOption = {
+            path: pointList,
+            geodesic: true,
+            strokeColor: 'red',
+            strokeOpacity: 1.0,
+            strokeWeight: 3.0,
+            icons: [{ //방향을 알기 위한 화살표 표시
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+              },
+              offset: '100%',
+              repeat: '150px'
+            }]
+          }
+
+          var map = new google.maps.Map(document.getElementById("pathmap"), mapOptions);
+          var poly = new google.maps.Polyline(polyOption);
+          poly.setMap(map);
+          $scope.map = map;
+        }
+
+        function geo_error() {
+          $ionicLoading.hide();
+          console.log(err);
+        }
+
+        var geo_options = {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 3000
+        };
+
+        var wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
+
+        $scope.interval = setInterval(function () {
+          wpid;
         }, 1000);
+
 
 
         var MaxQueue = ($scope.measurements.second * 200) / $scope.options.frequency;

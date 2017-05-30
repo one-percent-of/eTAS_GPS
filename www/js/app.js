@@ -141,8 +141,8 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
         });
 
         var posOptions = {
-          enableHighAccuracy: false,
-          timeout: 3000,
+          enableHighAccuracy: true,
+          timeout: 1000,
           maximumAge: 0
         };
         function geo_success(position) {
@@ -159,18 +159,10 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           });
           $scope.measurements.test = gpsSpeed;
           $scope.measurements.timestamp = position.timestamp;
-          if (gpsSpeed != 0) {
+          if (position.coords.speed) {
             speedGQueue.push(gpsSpeed);
             timeGQueue.push(position.timestamp);
           }
-
-          if (gpsSpeed) {
-
-            speedGQueue.push(0);
-            timeGQueue.push(position.timestamp);
-          }
-
-
 
           if (!!speedGQueue[1]) {
 
@@ -188,7 +180,6 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
           accList.push(accG);
           speedList.push(speedGQueue[0]);
-          $ionicLoading.hide();
 
           var mapOptions = {
             center: myLatlng,
@@ -217,7 +208,6 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
         }
 
         function geo_error() {
-          $ionicLoading.hide();
           console.log(err);
         }
 
@@ -273,6 +263,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
           if (cnt == calTime / $scope.options.frequency) {
             initQ = madgwick.conj(); //Current posture estimation
             date = Date();
+            $ionicLoading.hide();
           }
           if (cnt > calTime / $scope.options.frequency) {
             tmpQ = madgwick.getQuaternion();

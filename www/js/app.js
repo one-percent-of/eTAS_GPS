@@ -35,7 +35,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
   $scope.watch3 = null;
 
 
-  var ref = firebase.database().ref();
+  var ref = firebase.database().ref("record");
   var ref2 = firebase.database().ref("realtime");
   var obj = $firebaseObject(ref2);
   const beta = 0.033;
@@ -180,6 +180,8 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
 
           accList.push(accG);
           speedList.push(speedGQueue[0]);
+          obj.accVel = Math.round(accG);
+          obj.speed = Math.round(speedGQueue[0]);
 
           var mapOptions = {
             center: myLatlng,
@@ -269,30 +271,30 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             tmpQ = madgwick.getQuaternion();
 
 
-            //gravity compensation
-            x_a -= gravity * (2 * (tmpQ.x * tmpQ.z - tmpQ.w * tmpQ.y));
-            y_a -= gravity * (2 * (tmpQ.w * tmpQ.x + tmpQ.y * tmpQ.z));
-            z_a -= gravity * (tmpQ.w * tmpQ.w - tmpQ.x * tmpQ.x - tmpQ.y * tmpQ.y + tmpQ.z * tmpQ.z);
+            // //gravity compensation
+            // x_a -= gravity * (2 * (tmpQ.x * tmpQ.z - tmpQ.w * tmpQ.y));
+            // y_a -= gravity * (2 * (tmpQ.w * tmpQ.x + tmpQ.y * tmpQ.z));
+            // z_a -= gravity * (tmpQ.w * tmpQ.w - tmpQ.x * tmpQ.x - tmpQ.y * tmpQ.y + tmpQ.z * tmpQ.z);
 
-            accQueue.push(Math.sqrt(Math.pow(x_a, 2) + Math.pow(y_a, 2) + Math.pow(z_a, 2)));
-
-
-
-            //speed calculate
-            let sum = acc / secondCnt;
-            speed += sum;
-            if (speed < 0)
-              speed = 0;
-            speedList.push(speed.toFixed(2));
+            // accQueue.push(Math.sqrt(Math.pow(x_a, 2) + Math.pow(y_a, 2) + Math.pow(z_a, 2)));
 
 
-            //send speed to the server in realtime
-            obj.speed = Math.round(speed);
-            obj.$save().then(function (ref) {
-              ref.key() === obj.$id; // true
-            }, function (error) {
-              console.log("Error:", error);
-            });
+
+            // //speed calculate
+            // let sum = acc / secondCnt;
+            // speed += sum;
+            // if (speed < 0)
+            //   speed = 0;
+            // speedList.push(speed.toFixed(2));
+
+
+            // //send speed to the server in realtime
+            // obj.speed = Math.round(speed);
+            // obj.$save().then(function (ref) {
+            //   ref.key() === obj.$id; // true
+            // }, function (error) {
+            //   console.log("Error:", error);
+            // });
 
 
             //calibration
@@ -316,6 +318,13 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
             angularVel_cur = compareQueue[MaxQueue - 1] - compareQueue[MaxQueue - 1 - Math.round(MaxQueue * (5 / 6))];
 
             angularList.push(angularVel_cur.toFixed(2));
+
+            obj.angularVel = Math.round(angularVel_cur);
+            obj.$save().then(function (ref) {
+              ref.key() === obj.$id; // true
+            }, function (error) {
+              console.log("Error:", error);
+            });
 
             //angularVel calculate
 
@@ -566,8 +575,9 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
       $scope.measurements.cnt = cnt = 0;
       $scope.measurements.sum = sum3 = 0;
       $scope.measurements.sumU = sum6 = 0;
-      $scope.measurements.speedG = speedGQueue[0] = 0;
-      $scope.measurements.accG = accG = 0;
+      $scope.measurements.speedG = speedGQueue[0] = obj.speed = 0;
+      $scope.measurements.accG = accG = obj.accVel = 0;
+      $scope.measurements.ang = angularVel_cur = obj.angularVel = 0;
       $scope.measurements.alertL = judgeCnt3L = obj.rotationL = 0;
       $scope.measurements.alertR = judgeCnt3R = obj.rotationR = 0;
       $scope.measurements.alertU = judgeCnt6 = obj.uturn = 0;
@@ -645,6 +655,7 @@ app.controller('MotionController', function ($scope, $ionicPlatform, $cordovaDev
   $scope.$on('$ionicView.beforeLeave', function () {
     $scope.watch.clearWatch(); // Turn off motion detection watcher
     $scope.watch2.clearWatch(); // Turn off motion detection watcher
+    navigator.geolocation.clearWatch($scope.watch3);
   });
 
 });

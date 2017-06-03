@@ -564,9 +564,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $cordovaDeviceMo
     accQueue = [];
     speedQueue = [];
     judgeTime3 = judgeTime6 = 0;
-    speed = 0;
-    accG = 0;
-    angularVel = 0;
+    obj.speed = speed = 0;
+    obj.acc = accG = 0;
+    obj.angularVel = angularVel_cur = 0;
     var dateEnd = new Date();
     var drivingTime = (Date.parse(dateEnd) - Date.parse(date)) / 1000;
 

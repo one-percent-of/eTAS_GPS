@@ -1,3 +1,42 @@
+app.controller('AppCtrl', function($scope, $ionicModal, $ionicPopover, $timeout,  $location, $ionicPopup) {
+
+  // With the new view caching in Ionic, Controllers are only called
+  // when they are recreated or on app start, instead of every page change.
+  // To listen for when this page is active (for example, to refresh data),
+  // listen for the $ionicView.enter event:
+  //$scope.$on('$ionicView.enter', function(e) {
+  //});
+
+  // Form data for the login modal
+  $scope.loginData = {};
+
+  //--------------------------------------------
+   $scope.login = function(user) {
+			
+		if(typeof(user)=='undefined'){
+			$scope.showAlert('Please fill username and password to proceed.');	
+			return false;
+		}
+
+		if(user.username=='demo@gmail.com' && user.password=='demo'){
+			$location.path('/tab/measure');
+		}else{
+			$scope.showAlert('Invalid username or password.');	
+		}
+		
+	};
+  //--------------------------------------------
+  $scope.logout = function() {   $location.path('/app/login');   };
+  //--------------------------------------------
+   // An alert dialog
+	 $scope.showAlert = function(msg) {
+	   var alertPopup = $ionicPopup.alert({
+		 title: 'Warning Message',
+		 template: msg
+	   });
+	 };
+  //--------------------------------------------
+});
 app.controller('measureCtrl', function ($scope, $ionicPlatform, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
 
   $scope.options = {

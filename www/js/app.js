@@ -1,17 +1,41 @@
 var app = angular.module('starter', ['ionic', 'ngCordova', 'deviceGyroscope', 'firebase']);
 
-app.run(function ($ionicPlatform, $cordovaSplashscreen) {
+
+app.run(function ($ionicPlatform, $rootScope, $timeout) {
   $ionicPlatform.ready(function () {
+    // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+    // for form inputs)
     if (window.cordova && window.cordova.plugins.Keyboard) {
       cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+      cordova.plugins.Keyboard.disableScroll(true);
+
     }
-    $timeout(function () {
-      $cordovaSplashscreen.hide();
-    }, 2000);
     if (window.StatusBar) {
+      // org.apache.cordova.statusbar required
       StatusBar.styleDefault();
     }
   });
+
+  $rootScope.authStatus = false;
+  //stateChange event
+  $rootScope.$on("$stateChangeStart", function (event, toState, toParams, fromState, fromParams) {
+    $rootScope.authStatus = toState.authStatus;
+    if ($rootScope.authStatus) {
+
+
+    }
+  });
+
+  $rootScope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState, fromParams) {
+    console.log("URL : " + toState.url);
+    if (toState.url == '/dashboard') {
+      console.log("match : " + toState.url);
+      $timeout(function () {
+        angular.element(document.querySelector('#leftMenu')).removeClass("hide");
+      }, 1000);
+    }
+  });
+
 });
 app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
 
@@ -20,7 +44,33 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
   // Set up the various states which the app can be in.
   // Each state's controller can be found in controllers.js
   $stateProvider
+    .state('app', {
+      url: '/app',
+      abstract: true,
+      templateUrl: 'templates/menu.html',
+      controller: 'AppCtrl'
+    })
 
+    //--------------------------------------
+    .state('app.login', {
+      url: '/login',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/tab-signin.html'
+        }
+      },
+      authStatus: false
+    })
+    .state('app.signup', {
+      url: '/signup',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/tab-signup.html',
+        }
+      },
+      authStatus: false
+    })
+    //--------------------------------------
     // setup an abstract state for the tabs directive
     .state('tab', {
       url: '/tab',
@@ -37,7 +87,8 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
           templateUrl: 'templates/tab-dash.html',
           controller: 'DashCtrl'
         }
-      }
+      },
+      authStatus: true
     })
     .state('tab.graphs', {
       url: '/graphs',
@@ -73,7 +124,7 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
 
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/measure');
+  $urlRouterProvider.otherwise('/app/login');
 
 });
 

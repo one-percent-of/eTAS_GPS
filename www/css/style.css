@@ -1,1 +1,14 @@
 /* Empty. Add your own CSS if you like */
+#mixBut {
+  height: 150px;
+  width: 150px;
+  border-radius: 50%;
+  background-color: green;
+  border: 1px solid black;
+}
+.judge h5 {
+     text-align:left;
+}
+.item-avatar {
+  min-height: 52px;
+}

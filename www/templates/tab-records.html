@@ -1,0 +1,13 @@
+<ion-view view-title="기록">
+  <ion-content>
+    <ion-list>
+
+      <a ng-repeat="item in items" href="#/tab/records/{{item.id}}" class="item item-thumbnail-left">
+          <img src="http://www.freepngimg.com/download/car/1-2-car-png-picture.png">
+          <h2>{{ item.date }}</h2>
+          <h3 style = "color:#abb2bc; text-align: right;">{{ item.drivingTime }}</h3>
+          <h3 style = "color:#abb2bc; text-align: right;">{{ item.distance }}Km</h3>
+        </a>
+    </ion-list>
+  </ion-content>
+</ion-view>

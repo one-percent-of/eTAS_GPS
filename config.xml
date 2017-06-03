@@ -20,5 +20,6 @@
     <feature name="Geolocation">
         <param name="android-package" value="org.apache.cordova.geolocation.GeoBroker" />
     </feature>
+    <plugin name="cordova-plugin-splashscreen" spec="^4.0.3" />
     <plugin name="ionic-plugin-keyboard" spec="~2.2.1" />
 </widget>

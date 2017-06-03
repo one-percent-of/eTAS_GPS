@@ -1,4 +1,4 @@
-app.controller('AppCtrl', function($scope, $ionicModal, $ionicPopover, $timeout,  $location, $ionicPopup) {
+app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout, $location, $ionicPopup) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -11,30 +11,30 @@ app.controller('AppCtrl', function($scope, $ionicModal, $ionicPopover, $timeout,
   $scope.loginData = {};
 
   //--------------------------------------------
-   $scope.login = function(user) {
-			
-		if(typeof(user)=='undefined'){
-			$scope.showAlert('Please fill username and password to proceed.');	
-			return false;
-		}
+  $scope.login = function (user) {
 
-		if(user.username=='demo@gmail.com' && user.password=='demo'){
-			$location.path('/tab/measure');
-		}else{
-			$scope.showAlert('Invalid username or password.');	
-		}
-		
-	};
+    if (typeof (user) == 'undefined') {
+      $scope.showAlert('Please fill username and password to proceed.');
+      return false;
+    }
+
+    if (user.username == 'demo@gmail.com' && user.password == 'demo') {
+      $location.path('/tab/measure');
+    } else {
+      $scope.showAlert('Invalid username or password.');
+    }
+
+  };
   //--------------------------------------------
-  $scope.logout = function() {   $location.path('/app/login');   };
+  $scope.logout = function () { $location.path('/app/login'); };
   //--------------------------------------------
-   // An alert dialog
-	 $scope.showAlert = function(msg) {
-	   var alertPopup = $ionicPopup.alert({
-		 title: 'Warning Message',
-		 template: msg
-	   });
-	 };
+  // An alert dialog
+  $scope.showAlert = function (msg) {
+    var alertPopup = $ionicPopup.alert({
+      title: 'Warning Message',
+      template: msg
+    });
+  };
   //--------------------------------------------
 });
 app.controller('measureCtrl', function ($scope, $ionicPlatform, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
@@ -1026,4 +1026,11 @@ app.controller('recordsCtrl', function ($scope, $firebaseArray) {
     });
 
 
+});
+app.controller('ProfilesCtrl', function ($scope, Profiles) {
+  $scope.profiles = Profiles.all();
+});
+
+app.controller('ProfileCtrl', function ($scope, $stateParams, Profiles) {
+  $scope.profile = Profiles.get($stateParams.profileId);
 });

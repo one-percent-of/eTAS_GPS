@@ -1030,7 +1030,162 @@ app.controller('recordsCtrl', function ($scope, $firebaseArray) {
 app.controller('ProfilesCtrl', function ($scope, Profiles) {
   $scope.profiles = Profiles.all();
 });
-
 app.controller('ProfileCtrl', function ($scope, $stateParams, Profiles) {
   $scope.profile = Profiles.get($stateParams.profileId);
+});
+app.controller('trackerCtrl', function ($scope, $firebaseObject, pathService, $cordovaGeolocation) {
+  var labels = '1234567890';
+  var markersArray = [];
+  var markerClusterer;
+  var items = [];
+  var colors = ['red', 'blue', 'purple', 'cyan']
+
+  // Map Options
+  // Circle icon, Map option, Polyline option
+  function getCircle() {
+    return {
+      path: google.maps.SymbolPath.CIRCLE,
+      fillColor: colors[items.id],
+      fillOpacity: .2,
+      scale: 20,
+      strokeColor: 'white',
+      strokeWeight: .5
+    };
+  };
+  var mapOption = {
+    center: myLatlng,
+    zoom: 10,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+
+  // button click
+  $scope.trackerInit = function () {
+    removeMarkers(null);
+    removePolylines();
+    // drawMarker();
+  };
+
+  // Draw Map
+  var lat = 35.742;
+  var long = 127.421;
+  var myLatlng = new google.maps.LatLng(lat, long);
+  var map = new google.maps.Map(document.getElementById("map"), mapOption);
+  var poly = new google.maps.Polyline();
+
+
+  // Draw Map function
+  function drawMarker() {
+    // Set center and zoom
+    map.setCenter(myLatlng);
+    map.setZoom(10);
+
+    // Draw Marker 
+    // setMarkers(locations);
+    setMarkers(items.location);
+
+    // Draw Path
+    var polyOption = {
+      path: items.location,
+      geodesic: true,
+      strokeColor: 'red',
+      strokeOpacity: 1.0,
+      strokeWeight: 3.0,
+      icons: [{ //방향을 알기 위한 화살표 표시
+        icon: {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+        },
+        offset: '100%',
+        repeat: '150px'
+      }]
+    };
+    poly = new google.maps.Polyline(polyOption);
+    poly.setMap(map);
+  };
+
+  // removes the map on all markers in the array.
+  function removeMarkers(map) {
+    for (var i = 0; i < markersArray.length; i++) {
+      markersArray[i].setMap(map);
+    }
+    // markerCluster.setMap(map);
+  };
+  // removes the map on all Polylines.
+  function removePolylines() {
+    poly.setMap(null);
+  }
+
+  function addInfoWindow(marker, message) {
+
+    var infoWindow = new google.maps.InfoWindow({
+      content: message
+    });
+
+    google.maps.event.addListener(marker, 'click', function () {
+      infoWindow.open(map, marker);
+    });
+
+  }
+  // sets the map on all markers in the array.
+  function setMarkers(locations) {
+    for (var i = 0; i < locations.length; i++) {
+      var marker = new google.maps.Marker({
+        position: locations[i],
+        // label: labels[i++ % labels.length],
+        map: map,
+        icon: getCircle()
+      })
+      marker.setMap(map);
+      markersArray.push(marker);
+
+      var contentString = '<div id="content">' +
+        '<h4>급가속</h4>' + '<div>2017년 6월 2일</div>'
+      '</div>';
+      addInfoWindow(marker, contentString);
+    }
+
+    //  markerClusterer = new MarkerClusterer(map, markersArray, {
+    //   imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+    // });
+  }
+
+  $scope.$watch(function () {
+    return pathService.getNaId();
+  }, function (event) {
+    // console.log("null");
+    items = pathService.getItems();
+    removePolylines();
+    removeMarkers(null);
+    drawMarker();
+  }, true);
+  // google.maps.event.addDomListener(window, 'load', drawMarker());
+});
+app.service('pathService', function () {
+  var items = [];
+  var id;
+  // items = 10;
+
+  return {
+    increase: function () {
+      items++;
+      return items;
+    },
+    getX: function () {
+      return items;
+    },
+    setItems: function (item) {
+      items = item;
+    },
+    setId: function (id_) {
+      id = id_;
+    },
+    getId: function (id_) {
+      return items[id_];
+    },
+    getNaId: function () {
+      return id;
+    },
+    getItems: function () {
+      return items[id];
+    }
+  };
 });

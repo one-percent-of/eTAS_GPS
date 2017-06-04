@@ -92,10 +92,10 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
     //--------------------------------------
     // setup an abstract state for the tabs directive
     .state('tab', {
-    url: '/tab',
-    abstract: true,
-    templateUrl: 'templates/tabs.html'
-  })
+      url: '/tab',
+      abstract: true,
+      templateUrl: 'templates/tabs.html'
+    })
 
     // Each tab has its own nav history stack:
 
@@ -133,6 +133,15 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         'tab-measure': {
           templateUrl: 'templates/tab-measure.html',
           controller: 'measureCtrl'
+        }
+      }
+    })
+    .state('tab.tracker', {
+      url: '/tracker',
+      views: {
+        'tab-tracker': {
+          templateUrl: 'templates/tab-tracker.html',
+          controller: 'trackerCtrl'
         }
       }
     })

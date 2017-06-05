@@ -57,7 +57,9 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
 
   };
   //--------------------------------------------
-  $scope.logout = function () { $location.path('/app/login'); };
+  $scope.logout = function () {
+    $location.path('/app/login');
+  };
   //--------------------------------------------
   // An alert dialog
   $scope.showAlert = function (msg) {
@@ -66,34 +68,34 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
       template: msg
     });
   };
-   //--------------------------------------------
-    /*
-      install reference
-        cordova plugin add cordova-plugin-inappbrowser
-        https://github.com/ccoenraets/OpenFB
-     */
+  //--------------------------------------------
+  /*
+    install reference
+      cordova plugin add cordova-plugin-inappbrowser
+      https://github.com/ccoenraets/OpenFB
+   */
 
-    $scope.fbLogin = function () {
-      ngFB.login({
-        scope: 'email,publish_actions'
-      }).then(
-        function (response) {
-          if (response.status === 'connected') {
-            console.log('Facebook login succeeded');
-            location.href = "#/tab/measure";
-          } else {
-            alert('Facebook login failed');
-          }
-        });
-    };
-
-    $scope.fbLogout = function () {
-      facebookConnectPlugin.logout(function () {
-        location.href = "#/login"
-      }, function () {
-
+  $scope.fbLogin = function () {
+    ngFB.login({
+      scope: 'email,publish_actions'
+    }).then(
+      function (response) {
+        if (response.status === 'connected') {
+          console.log('Facebook login succeeded');
+          location.href = "#/tab/measure";
+        } else {
+          alert('Facebook login failed');
+        }
       });
-    };
+  };
+
+  $scope.fbLogout = function () {
+    facebookConnectPlugin.logout(function () {
+      location.href = "#/login"
+    }, function () {
+
+    });
+  };
   //--------------------------------------------
 });
 app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
@@ -237,6 +239,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         timeout: 1000,
         maximumAge: 0
       };
+
       function geo_success(position) {
 
         inputLat = position.coords.latitude;
@@ -436,14 +439,14 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           errorAngle3 = errorAngle6 = false;
           for (var i = 0; i <= MaxQueue - Math.round(MaxQueue / 6); i++) {
             if (Math.abs(compareQueue.slice(i, i + Math.round(MaxQueue / 6)).reduce(function (a, b) {
-              return a + b;
-            })) > 60)
+                return a + b;
+              })) > 60)
               errorAngle6 = true;
           }
           for (var i = MaxQueue / 2; i <= MaxQueue - Math.round(MaxQueue / 6); i++) {
             if (Math.abs(compareQueue.slice(i, i + Math.round(MaxQueue / 6)).reduce(function (a, b) {
-              return a + b;
-            })) > 60)
+                return a + b;
+              })) > 60)
               errorAngle3 = true;
           }
 
@@ -595,8 +598,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
                 console.log("Error:", error);
               });
             }
-          }
-          else {
+          } else {
             CntLSL = 0;
           }
 
@@ -765,8 +767,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
 
 
-  $scope.$on('$ionicView.beforeLeave', function () {
-  });
+  $scope.$on('$ionicView.beforeLeave', function () {});
 
 });
 app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseObject) {
@@ -799,7 +800,12 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseOb
       endAngle: 150,
       background: [{
         backgroundColor: {
-          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+          linearGradient: {
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 1
+          },
           stops: [
             [0, '#FFF'],
             [1, '#333']
@@ -809,7 +815,12 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseOb
         outerRadius: '109%'
       }, {
         backgroundColor: {
-          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+          linearGradient: {
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 1
+          },
           stops: [
             [0, '#333'],
             [1, '#FFF']
@@ -1021,8 +1032,7 @@ app.controller('graphsCtrl', function ($scope, $ionicSideMenuDelegate, $firebase
       animation: Highcharts.svg, // don't animate in old IE
       marginRight: 10,
       events: {
-        load: function () {
-        }
+        load: function () {}
       }
     },
     title: {
@@ -1200,35 +1210,24 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
   var items = [];
   var colors = ['red', 'blue', 'purple', 'cyan']
 
-  // Map Options
-  // Circle icon, Map option, Polyline option
-  function getCircle() {
-    return {
-      path: google.maps.SymbolPath.CIRCLE,
-      fillColor: colors[items.id],
-      fillOpacity: .2,
-      scale: 20,
-      strokeColor: 'white',
-      strokeWeight: .5
-    };
-  };
+  // Map option, Polyline option
   var mapOption = {
     center: myLatlng,
     zoom: 10,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
-
+  // items = Records.get($stateParams.recordId);
   // button click
   $scope.trackerInit = function () {
     removeMarkers(null);
     removePolylines();
     // drawMarker();
   };
-
+  console.log($scope.item.errorList);
   // Draw Map
   var lat = 35.742;
   var long = 127.421;
-  var myLatlng = new google.maps.LatLng(lat, long);
+  var myLatlng = new google.maps.LatLng($scope.item.pointList[0].lat, $scope.item.pointList[0].lng);
   var map = new google.maps.Map(document.getElementById("map"), mapOption);
   var poly = new google.maps.Polyline();
 
@@ -1237,15 +1236,17 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
   function drawMarker() {
     // Set center and zoom
     map.setCenter(myLatlng);
-    map.setZoom(10);
+    map.setZoom(18);
 
     // Draw Marker 
     // setMarkers(locations);
-    setMarkers(items.location);
+    console.log("error");
+    console.log($scope.item);
+    setMarkers($scope.item.errorList);
 
     // Draw Path
     var polyOption = {
-      path: items.location,
+      path: $scope.item.pointList,
       geodesic: true,
       strokeColor: 'red',
       strokeOpacity: 1.0,
@@ -1292,14 +1293,13 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
         position: locations[i],
         // label: labels[i++ % labels.length],
         map: map,
-        icon: getCircle()
       })
       marker.setMap(map);
       markersArray.push(marker);
 
       var contentString = '<div id="content">' +
-        '<h4>급가속</h4>' + '<div>2017년 6월 2일</div>'
-      '</div>';
+        '<h4>' + locations[i].name + '</h4>' + '<div>2017년 6월 2일</div>' +
+        '</div>';
       addInfoWindow(marker, contentString);
     }
 
@@ -1449,4 +1449,21 @@ app.controller('trackerCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
     drawMarker();
   }, true);
   // google.maps.event.addDomListener(window, 'load', drawMarker());
+});
+app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
+  ngFB.api({
+    path: '/me',
+    params: {
+      fields: 'id,name'
+    }
+  }).then(
+    function (user) {
+      $scope.user = user;
+    },
+    function (error) {
+      alert('Facebook error: ' + error.error_description);
+    });
 });

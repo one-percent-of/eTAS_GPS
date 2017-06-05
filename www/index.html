@@ -35,11 +35,12 @@
   <script>
     // Initialize Firebase
     var config = {
-      apiKey: "AIzaSyBd5DVPBkwEDbRMmAWBNbUwgoByRT28Quc",
-      authDomain: "arsproject-87342.firebaseapp.com",
-      databaseURL: "https://arsproject-87342.firebaseio.com",
-      storageBucket: "arsproject-87342.appspot.com",
-      messagingSenderId: "28325217662"
+      apiKey: "AIzaSyCoyciONA4eYGc_BmXMrWYrtjno1Lfoz1A",
+      authDomain: "viewcar-221b0.firebaseapp.com",
+      databaseURL: "https://viewcar-221b0.firebaseio.com",
+      projectId: "viewcar-221b0",
+      storageBucket: "viewcar-221b0.appspot.com",
+      messagingSenderId: "35111915166"
     };
     firebase.initializeApp(config);
 
@@ -82,7 +83,30 @@
         <ion-content>
           <ion-list id="menuLinks">
             <ion-item menu-close href="#/tab/measure"> Dashboard </ion-item>
-            <ion-item menu-close href="#/app/login" ng-click="logout()"> Logout </ion-item>
+
+
+            <!--controller: "ProfileCtrl"-->
+            <div ng-controller="ProfileCtrl">
+              <ion-item menu-close href="#/app/profile" style="width:300px; ">
+                <div class="card">
+                  <div class="item item-divider" style="text-align:center;">
+                    Profile
+                  </div>
+                  <div class="item item-text-wrap">
+                    <div class="item item-body">
+                      <img src="http://graph.facebook.com/{{user.id}}/picture?width=150&height=150" />
+                    </div>
+                  </div>
+                  <div class="item item-divider" style="text-align:center;">
+                    <p style="font-weight:bold; font-size:1.2em; height:1.4em">{{user.name}}</p>
+                    <p>{{user.email}}</p>
+                    <p>{{user.city}}</p>
+                  </div>
+                </div>
+
+              </ion-item>
+            </div>
+            <ion-item menu-close href="#/app/login" ng-click="fbLogout()"> Logout </ion-item>
           </ion-list>
         </ion-content>
       </ion-side-menu>

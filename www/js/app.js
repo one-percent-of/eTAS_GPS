@@ -138,8 +138,15 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         }
       }
     })
-
-
+    .state('app.profile', {
+      url: "/profile",
+      views: {
+        'menuContent': {
+          templateUrl: "templates/profile.html",
+          controller: "ProfileCtrl"
+        }
+      }
+    })
 
 
   $ionicConfigProvider.navBar.alignTitle('center');

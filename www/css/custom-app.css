@@ -20,11 +20,23 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#499bea', end
 #menuLinks .list .item{ border-color:#479CF7;}
 #menuLinks .list .item a{ background:#387EF5; color:#fff;}
 #mixBut {
+  display: inline-block;
+  padding: 15px 25px;
   height: 150px;
   width: 150px;
+  font-size: 24px;
   border-radius: 50%;
-  background-color: green;
-  border: 1px solid black;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  box-shadow: 0 9px #999;
+}
+#mixBut:hover {background-color: #3e8e41}
+
+#mixBut:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
 }
 .judge h5 {
      text-align:left;

@@ -1,3 +1,34 @@
+app.service('pathService', function () {
+  var items = [];
+  var id;
+  // items = 10;
+
+  return {
+    increase: function () {
+      items++;
+      return items;
+    },
+    getX: function () {
+      return items;
+    },
+    setItems: function (item) {
+      items = item;
+    },
+    setId: function (id_) {
+      id = id_;
+    },
+    getId: function (id_) {
+      return items[id_];
+    },
+    getNaId: function () {
+      return id;
+    },
+    getItems: function () {
+      return items[id];
+    }
+  };
+});
+
 app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout, $location, $ionicPopup) {
 
   // With the new view caching in Ionic, Controllers are only called
@@ -37,7 +68,11 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
   };
   //--------------------------------------------
 });
-app.controller('measureCtrl', function ($scope, $ionicPlatform, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
+app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
+
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
 
   $scope.options = {
     frequency: 100 // Measure every 100ms
@@ -592,7 +627,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $cordovaDeviceMo
     mixBut.removeEventListener("click", startWatching);
     mixBut.addEventListener("click", stopWatching);
     mixBut.value = "Stop";
-    mixBut.style.backgroundColor = "red";
+    mixBut.style.backgroundColor = '#f4511e';
 
   };
 
@@ -696,7 +731,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $cordovaDeviceMo
     mixBut.removeEventListener("click", stopWatching);
     mixBut.addEventListener("click", startWatching);
     mixBut.value = "Start";
-    mixBut.style.backgroundColor = "green";
+    mixBut.style.backgroundColor = "#4CAF50";
 
   }
 
@@ -706,95 +741,111 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $cordovaDeviceMo
   });
 
 });
-app.controller("DashCtrl", function ($scope, $firebaseObject) {
+app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseObject) {
+
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
+
   var ref = firebase.database().ref("realtime");
   var obj = $firebaseObject(ref);
 
 
-  var gaugeOptions = {
+  // The speed gauge
+  var chartSpeed = Highcharts.chart('speed', {
 
     chart: {
-      type: 'solidgauge'
+      type: 'gauge',
+      plotBackgroundColor: null,
+      plotBackgroundImage: null,
+      plotBorderWidth: 0,
+      plotShadow: false
     },
 
-    title: null,
+    title: {
+      text: ''
+    },
 
     pane: {
-      center: ['50%', '85%'],
-      size: '80%',
-      startAngle: -90,
-      endAngle: 90,
-      background: {
-        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
-        innerRadius: '60%',
-        outerRadius: '100%',
-        shape: 'arc'
-      }
-    },
-
-    tooltip: {
-      enabled: false
+      startAngle: -150,
+      endAngle: 150,
+      background: [{
+        backgroundColor: {
+          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+          stops: [
+            [0, '#FFF'],
+            [1, '#333']
+          ]
+        },
+        borderWidth: 0,
+        outerRadius: '109%'
+      }, {
+        backgroundColor: {
+          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+          stops: [
+            [0, '#333'],
+            [1, '#FFF']
+          ]
+        },
+        borderWidth: 1,
+        outerRadius: '107%'
+      }, {
+        // default background
+      }, {
+        backgroundColor: '#DDD',
+        borderWidth: 0,
+        outerRadius: '105%',
+        innerRadius: '103%'
+      }]
     },
 
     // the value axis
     yAxis: {
-      stops: [
-        [0.1, '#55BF3B'], // green
-        [0.5, '#DDDF0D'], // yellow
-        [0.9, '#DF5353'] // red
-      ],
-      lineWidth: 0,
-      minorTickInterval: null,
-      tickAmount: 2,
-      title: {
-        y: -70
-      },
-      labels: {
-        y: 16
-      }
-    },
-
-    plotOptions: {
-      solidgauge: {
-        dataLabels: {
-          y: 5,
-          borderWidth: 0,
-          useHTML: true
-        }
-      }
-    }
-  };
-
-  // The speed gauge
-  var chartSpeed = Highcharts.chart('container-speed', Highcharts.merge(gaugeOptions, {
-    yAxis: {
       min: 0,
-      max: 50,
-      title: {
-        text: 'Speed'
-      }
-    },
+      max: 200,
 
-    credits: {
-      enabled: false
+      minorTickInterval: 'auto',
+      minorTickWidth: 1,
+      minorTickLength: 10,
+      minorTickPosition: 'inside',
+      minorTickColor: '#666',
+
+      tickPixelInterval: 30,
+      tickWidth: 2,
+      tickPosition: 'inside',
+      tickLength: 10,
+      tickColor: '#666',
+      labels: {
+        step: 2,
+        rotation: 'auto'
+      },
+      title: {
+        text: 'km/h'
+      },
+      plotBands: [{
+        from: 0,
+        to: 120,
+        color: '#55BF3B' // green
+      }, {
+        from: 120,
+        to: 160,
+        color: '#DDDF0D' // yellow
+      }, {
+        from: 160,
+        to: 200,
+        color: '#DF5353' // red
+      }]
     },
 
     series: [{
       name: 'Speed',
-      data: [0],
-      dataLabels: {
-        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
-        '<span style="font-size:12px;color:silver">km/h</span></div>'
-      },
+      data: [80],
       tooltip: {
         valueSuffix: ' km/h'
       }
     }]
 
-
-
-  }));
+  });
 
 
 
@@ -805,7 +856,7 @@ app.controller("DashCtrl", function ($scope, $firebaseObject) {
 
     var accum = obj.rotationL + obj.rotationR + obj.uturn + obj.CC + obj.CF + obj.SL + obj.LSL + obj.acc + obj.dcc + obj.start + obj.stop;
     if (accum < 20) {
-      $scope.color = '#33cc33';
+      $scope.color = 'green';
       $scope.text = '우수';
     } else if (accum < 40) {
       $scope.color = '#33ccff';
@@ -837,7 +888,12 @@ app.controller("DashCtrl", function ($scope, $firebaseObject) {
 
 
 });
-app.controller('graphsCtrl', function ($scope, $firebaseObject) {
+app.controller('graphsCtrl', function ($scope, $ionicSideMenuDelegate, $firebaseObject) {
+
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
+
   var ref = firebase.database().ref("realtime");
   var obj = $firebaseObject(ref);
 
@@ -1004,22 +1060,27 @@ app.controller('graphsCtrl', function ($scope, $firebaseObject) {
   $scope.data = obj;
 
 });
-app.controller('recordsCtrl', function ($scope, $firebaseArray) {
+app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebaseArray, Records) {
+
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
+
   var ref = firebase.database().ref("record");
   var list = $firebaseArray(ref);
-  var items = [];
   var cnt = 0;
   list.$loaded()
     .then(function (x) {
 
       angular.forEach(x, function (x) {
         x.id = cnt;
+        x.averageSpeed = x.distance/(x.drivingTime/3600);
         x.drivingTime = Math.round(x.drivingTime / 3600) + "시간" + Math.round(x.drivingTime % 3600 / 60) + "분" + Math.round(x.drivingTime % 3600 % 60) + "초";
         x.date = x.date.slice(0, 24);
-        items.push(x);
+        Records.push(x);
         cnt++;
       })
-      $scope.items = items;
+      $scope.items = Records.all();
     })
     .catch(function (error) {
       console.log("Error:", error);
@@ -1027,13 +1088,22 @@ app.controller('recordsCtrl', function ($scope, $firebaseArray) {
 
 
 });
+app.controller('recordCtrl', function ($scope, $stateParams, Records) {
+  console.log(Records.get($stateParams.recordId));
+  $scope.item = Records.get($stateParams.recordId);
+});
 app.controller('ProfilesCtrl', function ($scope, Profiles) {
   $scope.profiles = Profiles.all();
 });
 app.controller('ProfileCtrl', function ($scope, $stateParams, Profiles) {
   $scope.profile = Profiles.get($stateParams.profileId);
 });
-app.controller('trackerCtrl', function ($scope, $firebaseObject, pathService, $cordovaGeolocation) {
+app.controller('trackerCtrl', function ($scope, $ionicSideMenuDelegate, $firebaseObject, pathService, $cordovaGeolocation) {
+
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
+
   var labels = '1234567890';
   var markersArray = [];
   var markerClusterer;
@@ -1158,34 +1228,4 @@ app.controller('trackerCtrl', function ($scope, $firebaseObject, pathService, $c
     drawMarker();
   }, true);
   // google.maps.event.addDomListener(window, 'load', drawMarker());
-});
-app.service('pathService', function () {
-  var items = [];
-  var id;
-  // items = 10;
-
-  return {
-    increase: function () {
-      items++;
-      return items;
-    },
-    getX: function () {
-      return items;
-    },
-    setItems: function (item) {
-      items = item;
-    },
-    setId: function (id_) {
-      id = id_;
-    },
-    getId: function (id_) {
-      return items[id_];
-    },
-    getNaId: function () {
-      return id;
-    },
-    getItems: function () {
-      return items[id];
-    }
-  };
 });

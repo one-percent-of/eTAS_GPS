@@ -127,6 +127,15 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         }
       }
     })
+    .state('tab.record', {
+      url: '/record/:recordId',
+      views: {
+        'tab-records': {
+          templateUrl: 'templates/record-detail.html',
+          controller: 'recordCtrl'
+        }
+      }
+    })
     .state('tab.measure', {
       url: '/measure',
       views: {

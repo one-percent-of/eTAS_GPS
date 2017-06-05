@@ -56,6 +56,7 @@ app.factory('Records', function () {
 
   // Some fake testing data
   var items = [];
+  var id;
 
   return {
     all: function () {
@@ -74,6 +75,12 @@ app.factory('Records', function () {
     },
     push: function (value) {
       items.push(value);
+    },
+    setId: function (id_) {
+      id = id_;
+    },
+    getId: function() {
+      return id;
     }
   };
 });

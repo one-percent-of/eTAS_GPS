@@ -15,7 +15,7 @@
   </ion-header-bar>-->
   <ion-content class="padding">
     <ion-list>
-      <a ng-repeat="item in items" href="#/tab/record/{{item.id}}" class="item item-thumbnail-left">
+      <a ng-repeat="item in items" href="#/tab/record/{{item.id}}" class="item item-thumbnail-left" ng-click="pathx({{item.id}})">
           <img src="http://www.freepngimg.com/download/car/1-2-car-png-picture.png">
           <h2>{{ item.date }}</h2>
           <h3 style = "color:#abb2bc; text-align: right;">{{ item.drivingTime }}</h3>

@@ -29,7 +29,7 @@ app.service('pathService', function () {
   };
 });
 
-app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout, $location, $ionicPopup) {
+app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout, $location, $ionicPopup, ngFB) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -66,6 +66,34 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
       template: msg
     });
   };
+   //--------------------------------------------
+    /*
+      install reference
+        cordova plugin add cordova-plugin-inappbrowser
+        https://github.com/ccoenraets/OpenFB
+     */
+
+    $scope.fbLogin = function () {
+      ngFB.login({
+        scope: 'email,publish_actions'
+      }).then(
+        function (response) {
+          if (response.status === 'connected') {
+            console.log('Facebook login succeeded');
+            location.href = "#/tab/measure";
+          } else {
+            alert('Facebook login failed');
+          }
+        });
+    };
+
+    $scope.fbLogout = function () {
+      facebookConnectPlugin.logout(function () {
+        location.href = "#/login"
+      }, function () {
+
+      });
+    };
   //--------------------------------------------
 });
 app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {

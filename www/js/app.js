@@ -70,25 +70,6 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
       },
       authStatus: false
     })
-    .state('app.profiles', {
-      url: '/profiles',
-      views: {
-        'menuContent': {
-          templateUrl: 'templates/profiles.html',
-          controller: 'ProfilesCtrl'
-        }
-      }
-    })
-
-    .state('app.profile', {
-      url: '/profile/:profileId',
-      views: {
-        'menuContent': {
-          templateUrl: 'templates/profile-detail.html',
-          controller: 'ProfileCtrl'
-        }
-      }
-    })
     //--------------------------------------
     // setup an abstract state for the tabs directive
     .state('tab', {

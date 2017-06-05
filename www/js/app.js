@@ -1,8 +1,11 @@
-var app = angular.module('starter', ['ionic', 'ngCordova', 'deviceGyroscope', 'firebase']);
+var app = angular.module('starter', ['ionic', 'ngCordova', 'deviceGyroscope', 'firebase', 'ngOpenFB']);
 
 
-app.run(function ($ionicPlatform, $rootScope, $timeout) {
+app.run(function ($ionicPlatform, $rootScope, $timeout, ngFB) {
   $ionicPlatform.ready(function () {
+    ngFB.init({
+      appId: '1229073797201154'
+    });
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
     if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -147,4 +150,3 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
   $urlRouterProvider.otherwise('/app/login');
 
 });
-

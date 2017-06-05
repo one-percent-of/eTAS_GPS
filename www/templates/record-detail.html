@@ -1,9 +1,18 @@
-<ion-view view-title="Tracker">
-  <div ng-controller="ProfileCtrl">
+<ion-view  cache-view="false" view-title="Tracker">
+  <!--<div ng-controller="ProfileCtrl">
     <ion-nav-buttons side="left">
       <button ng-click="toggleLeft()" class="button button-icon icon ion-navicon"></button>
     </ion-nav-buttons>
-  </div>
+  </div>-->
+  <ion-header-bar align-title="left" class="item-input-inset">
+    <label class="item-input-wrapper">
+        <i class="icon ion-ios7-search placeholder-icon"></i>
+        <input type="search"/>        
+    </label>
+    <button class="button button-clear">
+        Cancel
+    </button>
+  </ion-header-bar>
   <ion-content>
     <div class="list card">
       <div class="row" style="text-align:center;">

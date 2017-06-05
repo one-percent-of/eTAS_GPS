@@ -68,6 +68,9 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
   //--------------------------------------------
 });
 app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
   $scope.options = {
     frequency: 100 // Measure every 100ms
   };

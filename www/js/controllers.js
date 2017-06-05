@@ -177,6 +177,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var angularList = [];
   var speedGQueue = [];
   var timeGQueue = [];
+  var positionList = [];
+  var errorList = [];
   const calTime = 6000;
   const secondCnt = (1000 / $scope.options.frequency);
   var mixBut = document.getElementById("mixBut");
@@ -186,13 +188,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   //Start Watching method
   function startWatching() {
     if (cnt == 0) {
-
-      var inputLat;
-      var long;
       var gpsSpeed = 0;
       var accuracy;
-      var myLatlng;
-      var pointList = [];
 
       $ionicLoading.show({
         template: '<ion-spinner icon="bubbles"></ion-spinner><br/>data calibarion!'
@@ -206,14 +203,13 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
       function geo_success(position) {
 
-        inputLat = position.coords.latitude;
+        lati = position.coords.latitude;
         long = position.coords.longitude;
-        gpsSpeed = position.coords.speed;
-        gpsSpeed *= 3.6;
+        gpsSpeed = position.coords.speed * (3600 / 1000);
         accuracy = position.coords.accuracy;
-        myLatlng = new google.maps.LatLng(inputLat, long);
-        pointList.push({
-          lat: inputLat,
+        myLatlng = new google.maps.LatLng(lati, long);
+        positionList.push({
+          lat: lati,
           lng: long
         });
         if (position.coords.speed) {
@@ -236,7 +232,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           timeGQueue.shift();
         }
 
-        chartSpeed.series[0].points[0].update(speedGQueue[0]);
+        // chartSpeed.series[0].points[0].update(speedGQueue[0]);
 
         accList.push(accG);
         speedList.push(speedGQueue[0]);
@@ -247,11 +243,11 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
         var mapOptions = {
           center: myLatlng,
-          zoom: 16,
+          zoom: 18,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var polyOption = {
-          path: pointList,
+          path: positionList,
           geodesic: true,
           strokeColor: 'red',
           strokeOpacity: 1.0,
@@ -426,12 +422,21 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
 
           //rotation judge
-          if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3 && speedGQueue[0] > 30) {
+          // if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3 && speedGQueue[0] > 30) {
+          if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3 && speedGQueue[0] > 3) {
 
             if (sum3 < -60 && sum3 > -120) {
               judgeCnt3L++;
+              errorList.push({
+                name: '급좌회전',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTime3 = cnt;
 
+              //TODO:obj
               obj.rotationL = judgeCnt3L;
               obj.$save().then(function (ref) {
                 ref.key() === obj.$id; // true
@@ -442,8 +447,16 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             if (sum3 > 60 && sum3 < 120) {
               judgeCnt3R++;
+              errorList.push({
+                name: '급우회전',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTime3 = cnt;
 
+              //TODO:obj
               obj.rotationR = judgeCnt3R;
               obj.$save().then(function (ref) {
                 ref.key() === obj.$id; // true
@@ -455,12 +468,21 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           }
 
           //uturn judge
-          if (cnt - judgeTime6 > MaxQueue && !errorAngle6 && speedGQueue[0] > 25) {
+          // if (cnt - judgeTime6 > MaxQueue && !errorAngle6 && speedGQueue[0] > 25) {
+          if (cnt - judgeTime6 > MaxQueue && !errorAngle6 && speedGQueue[0] > 2) {
 
             if (Math.abs(sum6) > 160 && Math.abs(sum6) < 180) {
               judgeCnt6++;
+              errorList.push({
+                name: '급유턴',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTime6 = cnt;
 
+              //TODO:obj
               obj.uturn = judgeCnt6;
               obj.$save().then(function (ref) {
                 ref.key() === obj.$id; // true
@@ -473,7 +495,16 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           //급가속
           if (cnt - judgeTimeAcc > MaxQueue && speedGQueue[0] >= 6 && accG >= 8) {
             judgeCntAcc++;
+            errorList.push({
+              name: '급가속',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeAcc = cnt;
+
+            //TODO:obj
             obj.acc = judgeCntAcc;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -482,9 +513,19 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             });
           }
           //급출발
-          if (cnt - judgeTimeStart > secondCnt && speedGQueue[0] <= 5 && accG >= 10) {
+          // if (cnt - judgeTimeStart > secondCnt && speedGQueue[0] <= 5 && accG >= 10) {
+          if (cnt - judgeTimeStart > secondCnt && speedGQueue[0] <= 5 && accG >= 1) {
             judgeCntStart++;
+            errorList.push({
+              name: '급출발',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeStart = cnt;
+
+            //TODO:obj
             obj.start = judgeCntStart;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -496,7 +537,16 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           //급감속
           if (cnt - judgeTimeDcc > MaxQueue && speedGQueue[0] >= 6 && accG <= -14) {
             judgeCntDcc++;
+            errorList.push({
+              name: '급감속',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeDcc = cnt;
+
+            //TODO:obj
             obj.dcc = judgeCntDcc;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -506,10 +556,21 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           }
 
           //급정지
-          if (cnt - judgeTimeStop > secondCnt && speedGQueue[0] <= 5 && accG <= -14) {
+          // if (cnt - judgeTimeStop > secondCnt && speedGQueue[0] <= 5 && accG <= -14) {
+          if (cnt - judgeTimeStop > secondCnt && speedGQueue[0] <= 5 && accG <= -1) {
             judgeCntStop++;
+            errorList.push({
+              name: '급정지',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeStop = cnt;
+
+            //TODO:obj
             obj.stop = judgeCntStop;
+
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
             }, function (error) {
@@ -519,12 +580,29 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
           //급진로변경 && 급앞지르기
           if (speedGQueue[0] >= 30 && Math.abs(angularVel) >= 10 && Math.abs(angularVelFor5) <= 2) {
-            if (Math.abs(accG) <= 2)
+            if (Math.abs(accG) <= 2) {
               judgeCntCC++;
+              errorList.push({
+                name: '급진로변경',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
+            }
 
-            if (accG >= 3)
+            if (accG >= 3) {
               judgeCntCF++;
+              errorList.push({
+                name: '급앞지르기',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
+            }
 
+            //TODO:obj
             obj.CC = judgeCntCC;
             obj.CF = judgeCntCF;
             obj.$save().then(function (ref) {
@@ -536,9 +614,20 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           }
 
           //과속
-          if (cnt - judgeTimeSL > secondCnt * 3 && speedGQueue[0] >= speedLimit) {
+          // if (cnt - judgeTimeSL > secondCnt * 3 && speedGQueue[0] >= speedLimit) {
+          if (cnt - judgeTimeSL > secondCnt * 3 && speedGQueue[0] >= 1) {
             judgeCntSL++;
+            errorList.push({
+              name: '과속',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
+
             judgeTimeSL = cnt;
+
+            //TODO:obj
             obj.SL = judgeCntSL;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -554,7 +643,16 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             if (cnt - judgeTimeLSL > secondCnt * 3 && CntLSL >= secondCnt * 20) {
               judgeCntLSL++;
+              errorList.push({
+                name: '장기과속',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTimeLSL = cnt;
+
+              //TODO:obj
               obj.LSL = judgeCntLSL;
               obj.$save().then(function (ref) {
                 ref.key() === obj.$id; // true
@@ -565,7 +663,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           } else {
             CntLSL = 0;
           }
-
 
 
           //데이터 저장
@@ -694,7 +791,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
       DccCnt,
       StopCnt,
       CCCnt,
-      CFCnt
+      CFCnt,
+      errorList,
+      positionList
     }
     list.$add(logData).then(function (ref) {
       var id = ref.key();
@@ -720,6 +819,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     StopCnt = [];
     CCCnt = [];
     CFCnt = [];
+    errorList = [];
+    positionList = [];
 
 
     mixBut.removeEventListener("click", stopWatching);
@@ -1195,7 +1296,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   // Draw Map
   var lat = 35.742;
   var long = 127.421;
-  var myLatlng = new google.maps.LatLng($scope.item.pointList[0].lat, $scope.item.pointList[0].lng);
+  var myLatlng = new google.maps.LatLng($scope.item.positionList[0].lat, $scope.item.positionList[0].lng);
   var map = new google.maps.Map(document.getElementById("map"), mapOption);
   var poly = new google.maps.Polyline();
 
@@ -1214,7 +1315,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
 
     // Draw Path
     var polyOption = {
-      path: $scope.item.pointList,
+      path: $scope.item.positionList,
       geodesic: true,
       strokeColor: 'red',
       strokeOpacity: 1.0,

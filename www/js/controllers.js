@@ -97,6 +97,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   const gravity = 9.80665;
   const speedLimit = 90;
 
+
   var obj = {
     accVel: 0,
     speed: 0,
@@ -200,6 +201,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var positionList = [];
   var errorList = [];
 
+  var ref = firebase.database().ref("record");
+  var list = $firebaseArray(ref);
+
   const calTime = 6000;
   const secondCnt = (1000 / $scope.options.frequency);
   var mixBut = document.getElementById("mixBut");
@@ -256,12 +260,20 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           timeGQueue.shift();
         }
 
-        accList.push(accG);
-        speedList.push(speedGQueue[0]);
-        obj.accVel = Math.round(accG);
-        obj.speed = Math.round(speedGQueue[0]);
 
-        speedSum += speedGQueue[0];
+        if (!!speedGQueue[0]) {
+          obj.speed = Math.round(speedGQueue[0]);
+          obj.accVel = Math.round(accG);
+        } else {
+          obj.speed = 0;
+          obj.accVel = 0;
+        }
+
+
+        accList.push(obj.accVel);
+        speedList.push(obj.speed);
+
+        speedSum += obj.speed;
 
         // FIXME: zoom: 18
         //      : pointList -> positionList (ctrl + d)
@@ -648,21 +660,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           compareQueue.shift();
 
         }
-        // $scope.measurements.speedG = obj.speed;
-        $scope.measurements.accG = accG;
-        $scope.measurements.ang = angularVel_cur.toFixed(2);
-        $scope.measurements.cnt = cnt;
-        $scope.measurements.alertAcc = judgeCntAcc;
-        $scope.measurements.alertStart = judgeCntStart;
-        $scope.measurements.alertDcc = judgeCntDcc;
-        $scope.measurements.alertStop = judgeCntStop;
-        $scope.measurements.alertCC = judgeCntCC;
-        $scope.measurements.alertCF = judgeCntCF;
-        $scope.measurements.alertSL = judgeCntSL;
-        $scope.measurements.alertLSL = judgeCntLSL;
-        $scope.measurements.alertL = judgeCnt3L;
-        $scope.measurements.alertR = judgeCnt3R;
-        $scope.measurements.alertU = judgeCnt6;
+        $scope.measurements.speedG = obj.speed;
 
 
 
@@ -689,42 +687,23 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     sensorQueue = [];
     accQueue = [];
     speedQueue = [];
-    judgeTime3 = judgeTime6 = 0;
-    obj.speed = speed = 0;
-    obj.acc = accG = 0;
-    obj.angularVel = angularVel_cur = 0;
+    cnt = sum3 = sum6 = judgeTime3 = judgeTime6 = judgeTimeAcc = judgeTimeDcc = judgeTimeStart = judgeTimeStop = judgeTimeSL = judgeTimeLSL = 0;
+
     var dateEnd = new Date();
     var drivingTime = (Date.parse(dateEnd) - Date.parse(date)) / 1000;
-
     var distance = (speedSum * (drivingTime / 3600)).toFixed(2);
 
     $scope.watch.clearWatch();
     $scope.watch2.clearWatch();
     navigator.geolocation.clearWatch($scope.watch3);
 
-    $scope.measurements.cnt = cnt = 0;
-    $scope.measurements.sum = sum3 = 0;
-    $scope.measurements.sumU = sum6 = 0;
-    $scope.measurements.speedG = speedGQueue[0] = 0;
-    $scope.measurements.accG = accG = 0;
-    $scope.measurements.ang = angularVel_cur = 0;
-    $scope.measurements.alertL = judgeCnt3L = 0;
-    $scope.measurements.alertR = judgeCnt3R = 0;
-    $scope.measurements.alertU = judgeCnt6 = 0;
-    $scope.measurements.alertAcc = judgeCntAcc = 0;
-    $scope.measurements.alertDcc = judgeCntDcc = 0;
-    $scope.measurements.alertStart = judgeCntStart = 0;
-    $scope.measurements.alertStop = judgeCntStop = 0;
-    $scope.measurements.alertCC = judgeCntCC = 0;
-    $scope.measurements.alertCF = judgeCntCF = 0;
-    $scope.measurements.alertSL = judgeCntSL = 0;
-    $scope.measurements.alertLSL = judgeCntLSL = 0;
-    $scope.measurements.speed = speed = 0;
+
+    Object.keys(obj).map(function (key, index) {
+      obj[key] *= 0;
+    });
+    RealTime.update(obj);
 
 
-
-    let ref = firebase.database().ref("record");
-    let list = $firebaseArray(ref);
     let logData = {
       date,
       drivingTime,

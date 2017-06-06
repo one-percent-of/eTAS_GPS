@@ -34,3 +34,32 @@ app.factory('Records', function () {
     }
   };
 });
+
+app.factory('RealTime', function () {
+  // Might use a resource here that returns a JSON array
+
+  // Some fake testing data
+  var items = {};
+  var id;
+
+  return {
+    all: function () {
+      return items;
+    },
+    setId: function (id_){
+      id = id_;
+    },
+    get: function (recordId) {
+      return items[recordId];
+    },
+    getId : function(){
+      return id;
+    },
+    clear : function(){
+      items = {};
+    },
+    update : function(value){
+      items = Object.assign({},value);
+    }
+  };
+});

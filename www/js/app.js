@@ -31,7 +31,7 @@ app.run(function ($ionicPlatform, $rootScope, $timeout, ngFB) {
 
   $rootScope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState, fromParams) {
     console.log("URL : " + toState.url);
-    if (toState.url == '/dashboard') {
+    if (toState.url == '/measure') {
       console.log("match : " + toState.url);
       $timeout(function () {
         angular.element(document.querySelector('#leftMenu')).removeClass("hide");
@@ -126,6 +126,15 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         'tab-measure': {
           templateUrl: 'templates/tab-measure.html',
           controller: 'measureCtrl'
+        }
+      }
+    })
+    .state('app.profile', {
+      url: "/profile",
+      views: {
+        'menuContent': {
+          templateUrl: "templates/profile.html",
+          controller: "ProfileCtrl"
         }
       }
     })

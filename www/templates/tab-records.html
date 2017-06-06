@@ -2,7 +2,7 @@
   <ion-nav-buttons side="left">
     <button ng-click="toggleLeft()" class="button button-icon icon ion-navicon"></button>
   </ion-nav-buttons>
-  <ion-header-bar align-title="left" class="item-input-inset">
+  <!--<ion-header-bar align-title="left" class="item-input-inset">
     <label class="item-input-wrapper">
         <i class="icon ion-ios7-search placeholder-icon"></i>
         <input type="search"/>        
@@ -10,13 +10,17 @@
     <button class="button button-clear">
         Cancel
     </button>
-  </ion-header-bar>
+  </ion-header-bar>-->
   <ion-content class="padding">
+
+    <ion-refresher pulling-text="Pull to refresh..." on-refresh="load()">
+
+    </ion-refresher>
     <ion-list>
-      <a ng-repeat="item in items"href="#/tab/record/{{item.id}}" class="item item-thumbnail-left" >
+      <a ng-repeat="item in items" href="#/tab/record/{{item.id}}" class="item item-thumbnail-left">
           <img src="http://www.freepngimg.com/download/car/1-2-car-png-picture.png">
           <h2>{{ item.dateRecord }}</h2>
-          <h3 style = "color:#abb2bc; text-align: right;">{{ item.drivingTime }}</h3>
+          <h3 style = "color:#abb2bc; text-align: right;">{{ item.drivingTimeStr }}</h3>
           <h3 style = "color:#abb2bc; text-align: right;">{{ item.distance }}Km</h3>
         </a>
     </ion-list>

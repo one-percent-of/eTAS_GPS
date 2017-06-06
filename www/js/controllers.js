@@ -1,34 +1,3 @@
-app.service('pathService', function () {
-  var items = [];
-  var id;
-  // items = 10;
-
-  return {
-    increase: function () {
-      items++;
-      return items;
-    },
-    getX: function () {
-      return items;
-    },
-    setItems: function (item) {
-      items = item;
-    },
-    setId: function (id_) {
-      id = id_;
-    },
-    getId: function (id_) {
-      return items[id_];
-    },
-    getNaId: function () {
-      return id;
-    },
-    getItems: function () {
-      return items[id];
-    }
-  };
-});
-
 app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout, $location, $ionicPopup, ngFB) {
 
   // With the new view caching in Ionic, Controllers are only called
@@ -57,7 +26,9 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
 
   };
   //--------------------------------------------
-  $scope.logout = function () { $location.path('/app/login'); };
+  $scope.logout = function () {
+    $location.path('/app/login');
+  };
   //--------------------------------------------
   // An alert dialog
   $scope.showAlert = function (msg) {
@@ -66,38 +37,37 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
       template: msg
     });
   };
-   //--------------------------------------------
-    /*
-      install reference
-        cordova plugin add cordova-plugin-inappbrowser
-        https://github.com/ccoenraets/OpenFB
-     */
+  //--------------------------------------------
+  /*
+    install reference
+      cordova plugin add cordova-plugin-inappbrowser
+      https://github.com/ccoenraets/OpenFB
+   */
 
-    $scope.fbLogin = function () {
-      ngFB.login({
-        scope: 'email,publish_actions'
-      }).then(
-        function (response) {
-          if (response.status === 'connected') {
-            console.log('Facebook login succeeded');
-            location.href = "#/tab/measure";
-          } else {
-            alert('Facebook login failed');
-          }
-        });
-    };
-
-    $scope.fbLogout = function () {
-      facebookConnectPlugin.logout(function () {
-        location.href = "#/login"
-      }, function () {
-
+  $scope.fbLogin = function () {
+    ngFB.login({
+      scope: 'email,publish_actions'
+    }).then(
+      function (response) {
+        if (response.status === 'connected') {
+          console.log('Facebook login succeeded');
+          location.href = "#/tab/measure";
+        } else {
+          alert('Facebook login failed');
+        }
       });
-    };
+  };
+
+  $scope.fbLogout = function () {
+    facebookConnectPlugin.logout(function () {
+      location.href = "#/login"
+    }, function () {
+
+    });
+  };
   //--------------------------------------------
 });
 app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
-
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
   };
@@ -105,7 +75,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.options = {
     frequency: 100 // Measure every 100ms
   };
-
 
   // Current measurements
   $scope.measurements = {
@@ -156,7 +125,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
      */
     beta: beta
   });
-  var x_a, y_a, z_a, x_g, y_g, z_g, date, initQ, tmpQ, cnt = 0,
+  // FIXME: add lati, long, myLatlng
+  var x_a, y_a, z_a, x_g, y_g, z_g, date, lati, long, myLatlng, initQ, tmpQ, cnt = 0,
     sum3 = 0,
     sum6 = 0,
     judgeTime3 = 0,
@@ -211,6 +181,11 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var angularList = [];
   var speedGQueue = [];
   var timeGQueue = [];
+
+  // FIXME: add List
+  var positionList = [];
+  var errorList = [];
+
   const calTime = 6000;
   const secondCnt = (1000 / $scope.options.frequency);
   var mixBut = document.getElementById("mixBut");
@@ -220,13 +195,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   //Start Watching method
   function startWatching() {
     if (cnt == 0) {
-
-      var inputLat;
-      var long;
+      // FIXME: remove inputLat, long, myLatlng, pointList
       var gpsSpeed = 0;
       var accuracy;
-      var myLatlng;
-      var pointList = [];
 
       $ionicLoading.show({
         template: '<ion-spinner icon="bubbles"></ion-spinner><br/>data calibarion!'
@@ -237,16 +208,20 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         timeout: 1000,
         maximumAge: 0
       };
-      function geo_success(position) {
 
-        inputLat = position.coords.latitude;
+      /* FIXME: inputLat -> lati
+              : pointList -> positionList
+              :  
+       */
+      function geo_success(position) {
+        lati = position.coords.latitude;
         long = position.coords.longitude;
-        gpsSpeed = position.coords.speed;
-        gpsSpeed *= 3.6;
+        gpsSpeed = position.coords.speed * (3600 / 1000);
         accuracy = position.coords.accuracy;
-        myLatlng = new google.maps.LatLng(inputLat, long);
-        pointList.push({
-          lat: inputLat,
+
+        myLatlng = new google.maps.LatLng(lati, long);
+        positionList.push({
+          lat: lati,
           lng: long
         });
         if (position.coords.speed) {
@@ -278,13 +253,16 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
         speedSum += speedGQueue[0];
 
+        // FIXME: zoom: 18
+        //      : pointList -> positionList (ctrl + d)
+        //      : 
         var mapOptions = {
           center: myLatlng,
-          zoom: 16,
+          zoom: 18,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var polyOption = {
-          path: pointList,
+          path: positionList,
           geodesic: true,
           strokeColor: 'red',
           strokeOpacity: 1.0,
@@ -298,7 +276,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           }]
         }
 
-        var map = new google.maps.Map(document.getElementById("pathmap"), mapOptions);
+        // FIXME: pathmap -> map
+        var map = new google.maps.Map(document.getElementById("map"), mapOptions);
         var poly = new google.maps.Polyline(polyOption);
         poly.setMap(map);
         $scope.map = map;
@@ -436,14 +415,14 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           errorAngle3 = errorAngle6 = false;
           for (var i = 0; i <= MaxQueue - Math.round(MaxQueue / 6); i++) {
             if (Math.abs(compareQueue.slice(i, i + Math.round(MaxQueue / 6)).reduce(function (a, b) {
-              return a + b;
-            })) > 60)
+                return a + b;
+              })) > 60)
               errorAngle6 = true;
           }
           for (var i = MaxQueue / 2; i <= MaxQueue - Math.round(MaxQueue / 6); i++) {
             if (Math.abs(compareQueue.slice(i, i + Math.round(MaxQueue / 6)).reduce(function (a, b) {
-              return a + b;
-            })) > 60)
+                return a + b;
+              })) > 60)
               errorAngle3 = true;
           }
 
@@ -463,6 +442,15 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             if (sum3 < -60 && sum3 > -120) {
               judgeCnt3L++;
+              // FIXME: errorList
+              // 다른 errorList와 name만 다릅니다!
+              errorList.push({
+                name: '급좌회전',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTime3 = cnt;
 
               obj.rotationL = judgeCnt3L;
@@ -475,6 +463,13 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             if (sum3 > 60 && sum3 < 120) {
               judgeCnt3R++;
+              errorList.push({
+                name: '급우회전',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTime3 = cnt;
 
               obj.rotationR = judgeCnt3R;
@@ -492,6 +487,13 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             if (Math.abs(sum6) > 160 && Math.abs(sum6) < 180) {
               judgeCnt6++;
+              errorList.push({
+                name: '급유턴',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTime6 = cnt;
 
               obj.uturn = judgeCnt6;
@@ -506,7 +508,15 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           //급가속
           if (cnt - judgeTimeAcc > MaxQueue && speedGQueue[0] >= 6 && accG >= 8) {
             judgeCntAcc++;
+            errorList.push({
+              name: '급가속',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeAcc = cnt;
+
             obj.acc = judgeCntAcc;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -517,7 +527,15 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           //급출발
           if (cnt - judgeTimeStart > secondCnt && speedGQueue[0] <= 5 && accG >= 10) {
             judgeCntStart++;
+            errorList.push({
+              name: '급출발',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeStart = cnt;
+
             obj.start = judgeCntStart;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -529,7 +547,15 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           //급감속
           if (cnt - judgeTimeDcc > MaxQueue && speedGQueue[0] >= 6 && accG <= -14) {
             judgeCntDcc++;
+            errorList.push({
+              name: '급감속',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeDcc = cnt;
+
             obj.dcc = judgeCntDcc;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -541,8 +567,17 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           //급정지
           if (cnt - judgeTimeStop > secondCnt && speedGQueue[0] <= 5 && accG <= -14) {
             judgeCntStop++;
+            errorList.push({
+              name: '급정지',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
             judgeTimeStop = cnt;
+
             obj.stop = judgeCntStop;
+
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
             }, function (error) {
@@ -552,11 +587,27 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
           //급진로변경 && 급앞지르기
           if (speedGQueue[0] >= 30 && Math.abs(angularVel) >= 10 && Math.abs(angularVelFor5) <= 2) {
-            if (Math.abs(accG) <= 2)
+            if (Math.abs(accG) <= 2) {
               judgeCntCC++;
+              errorList.push({
+                name: '급진로변경',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
+            }
 
-            if (accG >= 3)
+            if (accG >= 3) {
               judgeCntCF++;
+              errorList.push({
+                name: '급앞지르기',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
+            }
 
             obj.CC = judgeCntCC;
             obj.CF = judgeCntCF;
@@ -571,7 +622,16 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           //과속
           if (cnt - judgeTimeSL > secondCnt * 3 && speedGQueue[0] >= speedLimit) {
             judgeCntSL++;
+            errorList.push({
+              name: '과속',
+              // time: timeGQueue[1],
+              lat: lati,
+              lng: long,
+              number: judgeCntSL
+            });
+
             judgeTimeSL = cnt;
+
             obj.SL = judgeCntSL;
             obj.$save().then(function (ref) {
               ref.key() === obj.$id; // true
@@ -587,7 +647,15 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             if (cnt - judgeTimeLSL > secondCnt * 3 && CntLSL >= secondCnt * 20) {
               judgeCntLSL++;
+              errorList.push({
+                name: '장기과속',
+                // time: timeGQueue[1],
+                lat: lati,
+                lng: long,
+                number: judgeCntSL
+              });
               judgeTimeLSL = cnt;
+
               obj.LSL = judgeCntLSL;
               obj.$save().then(function (ref) {
                 ref.key() === obj.$id; // true
@@ -595,11 +663,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
                 console.log("Error:", error);
               });
             }
-          }
-          else {
+          } else {
             CntLSL = 0;
           }
-
 
 
           //데이터 저장
@@ -728,7 +794,10 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
       DccCnt,
       StopCnt,
       CCCnt,
-      CFCnt
+      CFCnt,
+      // FIXME: errorList, positionList 추가
+      errorList,
+      positionList
     }
     list.$add(logData).then(function (ref) {
       var id = ref.key();
@@ -754,6 +823,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     StopCnt = [];
     CCCnt = [];
     CFCnt = [];
+    // FIXME: errorList, positionList 추가
+    errorList = [];
+    positionList = [];
 
 
     mixBut.removeEventListener("click", stopWatching);
@@ -765,8 +837,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
 
 
-  $scope.$on('$ionicView.beforeLeave', function () {
-  });
+  $scope.$on('$ionicView.beforeLeave', function () {});
 
 });
 app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseObject) {
@@ -799,7 +870,12 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseOb
       endAngle: 150,
       background: [{
         backgroundColor: {
-          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+          linearGradient: {
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 1
+          },
           stops: [
             [0, '#FFF'],
             [1, '#333']
@@ -809,7 +885,12 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseOb
         outerRadius: '109%'
       }, {
         backgroundColor: {
-          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+          linearGradient: {
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 1
+          },
           stops: [
             [0, '#333'],
             [1, '#FFF']
@@ -1021,8 +1102,7 @@ app.controller('graphsCtrl', function ($scope, $ionicSideMenuDelegate, $firebase
       animation: Highcharts.svg, // don't animate in old IE
       marginRight: 10,
       events: {
-        load: function () {
-        }
+        load: function () {}
       }
     },
     title: {
@@ -1097,28 +1177,48 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
   var ref = firebase.database().ref("record");
   var list = $firebaseArray(ref);
   var cnt = 0;
-  list.$loaded()
-    .then(function (x) {
+  var keepGoing = true;
 
-      angular.forEach(x, function (x) {
-        x.id = cnt;
-        x.averageSpeed = x.distance / (x.drivingTime / 3600);
-        x.drivingTime = Math.round(x.drivingTime / 3600) + "시간" + Math.round(x.drivingTime % 3600 / 60) + "분" + Math.round(x.drivingTime % 3600 % 60) + "초";
-        x.dateRecord = x.date.slice(0, 24);
-        Records.push(x);
-        cnt++;
+  // FIXME: for refresh
+  $scope.load = function () {
+    list.$loaded()
+      .then(function (x) {
+        // $scope.forminput = {};
+        Records.clear();
+        cnt = 0;
+
+        angular.forEach(x, function (x) {
+          console.log(cnt);
+          if (keepGoing) {
+            if (cnt == list.length) {
+              keepGoing = false;
+            }
+            x.id = cnt;
+            x.averageSpeed = x.distance / (x.drivingTime / 3600);
+            x.drivingTimeStr = Math.round(x.drivingTime / 3600) + "시간" + Math.round(x.drivingTime % 3600 / 60) + "분" + Math.round(x.drivingTime % 3600 % 60) + "초";
+            x.dateRecord = x.date.slice(0, 24);
+            Records.push(x);
+            cnt++;
+            console.log("in");
+          }
+        })
+
+        console.log("out");
+        $scope.items = Records.all();
+
+        keepGoing = true;
+        // Stop the ion-refresher from spinning
+        $scope.$broadcast('scroll.refreshComplete');
       })
-      $scope.items = Records.all();
-    })
-    .catch(function (error) {
-      console.log("Error:", error);
-    });
+      .catch(function (error) {
+        console.log("Error:", error);
+      });
+  }
 
-
+  $scope.load();
 });
-app.controller('recordCtrl', function ($scope, $stateParams, Records, pathService, $cordovaGeolocation) {
+app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGeolocation) {
   $scope.item = Records.get($stateParams.recordId);
-  if(!!Records.get($stateParams.recordId).speedList){
   var recordGraph = Highcharts.chart('record', {
     chart: {
       zoomType: 'xy'
@@ -1194,7 +1294,6 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
       }
     }
   });
-  }
 
   var labels = '1234567890';
   var markersArray = [];
@@ -1202,35 +1301,24 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
   var items = [];
   var colors = ['red', 'blue', 'purple', 'cyan']
 
-  // Map Options
-  // Circle icon, Map option, Polyline option
-  function getCircle() {
-    return {
-      path: google.maps.SymbolPath.CIRCLE,
-      fillColor: colors[items.id],
-      fillOpacity: .2,
-      scale: 20,
-      strokeColor: 'white',
-      strokeWeight: .5
-    };
-  };
+  // Map option, Polyline option
   var mapOption = {
     center: myLatlng,
     zoom: 10,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
-
+  // items = Records.get($stateParams.recordId);
   // button click
   $scope.trackerInit = function () {
     removeMarkers(null);
     removePolylines();
     // drawMarker();
   };
-
+  console.log($scope.item.errorList);
   // Draw Map
   var lat = 35.742;
   var long = 127.421;
-  var myLatlng = new google.maps.LatLng(lat, long);
+  var myLatlng = new google.maps.LatLng($scope.item.positionList[0].lat, $scope.item.positionList[0].lng);
   var map = new google.maps.Map(document.getElementById("map"), mapOption);
   var poly = new google.maps.Polyline();
 
@@ -1239,15 +1327,17 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
   function drawMarker() {
     // Set center and zoom
     map.setCenter(myLatlng);
-    map.setZoom(10);
+    map.setZoom(18);
 
     // Draw Marker 
     // setMarkers(locations);
-    setMarkers(items.location);
+    console.log("error");
+    console.log($scope.item);
+    setMarkers($scope.item.errorList);
 
     // Draw Path
     var polyOption = {
-      path: items.location,
+      path: $scope.item.positionList,
       geodesic: true,
       strokeColor: 'red',
       strokeOpacity: 1.0,
@@ -1265,9 +1355,9 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
   };
 
   // removes the map on all markers in the array.
-  function removeMarkers(map) {
+  function removeMarkers() {
     for (var i = 0; i < markersArray.length; i++) {
-      markersArray[i].setMap(map);
+      markersArray[i].setMap(null);
     }
     // markerCluster.setMap(map);
   };
@@ -1294,14 +1384,13 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
         position: locations[i],
         // label: labels[i++ % labels.length],
         map: map,
-        icon: getCircle()
       })
       marker.setMap(map);
       markersArray.push(marker);
 
       var contentString = '<div id="content">' +
-        '<h4>급가속</h4>' + '<div>2017년 6월 2일</div>'
-      '</div>';
+        '<h4>' + locations[i].name + '</h4>' + '<div>2017년 6월 2일</div>' +
+        '</div>';
       addInfoWindow(marker, contentString);
     }
 
@@ -1310,14 +1399,43 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, pathServic
     // });
   }
 
+  // FIXME: pathSvc -> Records
   $scope.$watch(function () {
-    return pathService.getNaId();
+    return Records.getId();
   }, function (event) {
     // console.log("null");
-    items = pathService.getItems();
+    // items = pathService.getItems();
     removePolylines();
-    removeMarkers(null);
+    removeMarkers();
     drawMarker();
   }, true);
 
+});
+
+// FIXME: 전체
+app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
+  $scope.toggleLeft = function () {
+    $ionicSideMenuDelegate.toggleLeft();
+  };
+  ngFB.api({
+    path: '/me',
+    params: {
+      fields: 'id,name'
+    }
+  }).then(
+    function (user) {
+      $scope.user = user;
+    },
+    function (error) {});
+
+  $scope.posts = [];
+
+  for (var i = 0; i < 7; i++) {
+    // Fake a date
+    var date = (+new Date) - (i * 1000 * 60 * 60);
+    $scope.posts.push({
+      created_at: date,
+      text: 'Doing a bit of ' + ((Math.floor(Math.random() * 2) === 1) ? 'that' : 'this')
+    });
+  }
 });

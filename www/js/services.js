@@ -81,6 +81,9 @@ app.factory('Records', function () {
     },
     getId: function() {
       return id;
+    },
+    clear: function() {
+      items = [];
     }
   };
 });

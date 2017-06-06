@@ -49,7 +49,7 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
   $stateProvider
     .state('app', {
       url: '/app',
-      abstract: true,
+      // abstract: true,
       templateUrl: 'templates/menu.html',
       controller: 'AppCtrl'
     })
@@ -91,7 +91,7 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
           controller: 'DashCtrl'
         }
       },
-      authStatus: true
+      // authStatus: true
     })
     .state('tab.graphs', {
       url: '/graphs',

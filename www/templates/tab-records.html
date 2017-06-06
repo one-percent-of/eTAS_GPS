@@ -1,8 +1,8 @@
 <ion-view view-title="기록">
   <!--<div ng-controller="profileCtrl">-->
-    <ion-nav-buttons side="left">
-      <button ng-click="toggleLeft()" class="button button-icon icon ion-navicon"></button>
-    </ion-nav-buttons>
+  <ion-nav-buttons side="left">
+    <button ng-click="toggleLeft()" class="button button-icon icon ion-navicon"></button>
+  </ion-nav-buttons>
   <!--</div>-->
   <!--<ion-header-bar align-title="left" class="item-input-inset">
     <label class="item-input-wrapper">
@@ -14,8 +14,15 @@
     </button>
   </ion-header-bar>-->
   <ion-content class="padding">
+
+    <!--FIXME: for refresh-->
+    <ion-refresher pulling-text="Pull to refresh..." on-refresh="load()" >
+    </ion-refresher>
+
+
+
     <ion-list>
-      <a ng-repeat="item in items" href="#/tab/record/{{item.id}}" class="item item-thumbnail-left" ng-click="pathx({{item.id}})">
+      <a ng-repeat="item in items" href="#/tab/record/{{item.id}}" class="item item-thumbnail-left" ng-click="pathx({{item.id}})" >
           <img src="http://www.freepngimg.com/download/car/1-2-car-png-picture.png">
           <h2>{{ item.date }}</h2>
           <h3 style = "color:#abb2bc; text-align: right;">{{ item.drivingTime }}</h3>

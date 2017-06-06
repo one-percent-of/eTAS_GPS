@@ -92,7 +92,20 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.watch2 = null;
   $scope.watch3 = null;
 
+  document.addEventListener('deviceready', function () {
 
+    // or with more options
+    TTS
+      .speak({
+        text: '안녕하세요',
+        locale: 'ko-KR',
+        rate: 0.75
+      }, function () {
+        alert('success');
+      }, function (reason) {
+        alert(reason);
+      });
+  }, false);
   const beta = 0.033;
   const gravity = 9.80665;
   const speedLimit = 90;
@@ -1341,4 +1354,9 @@ app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
       $scope.user = user;
     },
     function (error) {});
+});
+app.filter('reverse', function () {
+  return function (items) {
+    return items.slice().reverse();
+  };
 });

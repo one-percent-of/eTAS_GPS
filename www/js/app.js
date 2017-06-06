@@ -129,15 +129,6 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         }
       }
     })
-    .state('tab.tracker', {
-      url: '/tracker',
-      views: {
-        'tab-tracker': {
-          templateUrl: 'templates/tab-tracker.html',
-          controller: 'trackerCtrl'
-        }
-      }
-    })
 
 
 

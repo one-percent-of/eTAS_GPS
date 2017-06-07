@@ -92,20 +92,20 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.watch2 = null;
   $scope.watch3 = null;
 
-  document.addEventListener('deviceready', function () {
+  // document.addEventListener('deviceready', function () {
 
-    // or with more options
-    TTS
-      .speak({
-        text: '안녕하세요',
-        locale: 'ko-KR',
-        rate: 0.75
-      }, function () {
-        alert('success');
-      }, function (reason) {
-        alert(reason);
-      });
-  }, false);
+  //   // or with more options
+  //   TTS
+  //     .speak({
+  //       text: '안녕하세요',
+  //       locale: 'ko-KR',
+  //       rate: 0.75
+  //     }, function () {
+  //       alert('success');
+  //     }, function (reason) {
+  //       alert(reason);
+  //     });
+  // }, false);
   const beta = 0.033;
   const gravity = 9.80665;
   const speedLimit = 90;
@@ -287,6 +287,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         speedList.push(obj.speed);
 
         speedSum += obj.speed;
+        $scope.measurements.test = speedList;
 
         // FIXME: zoom: 18
         //      : pointList -> positionList (ctrl + d)
@@ -704,7 +705,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
     var dateEnd = new Date();
     var drivingTime = (Date.parse(dateEnd) - Date.parse(date)) / 1000;
-    var distance = (speedSum * (drivingTime / 3600)).toFixed(2);
+    var averageSpeed = (speedSum / speedList.length).toFixed(2);
+    var distance = (averageSpeed * (speedList.length / 3600)).toFixed(2);
 
     $scope.watch.clearWatch();
     $scope.watch2.clearWatch();
@@ -720,6 +722,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     let logData = {
       date,
       drivingTime,
+      averageSpeed,
       distance,
       rotationAng,
       uturnAng,
@@ -904,7 +907,7 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, RealTime) {
   }, function (event) {
     chartSpeed.series[0].points[0].update(RealTime.get("speed"));
 
-    var accum = RealTime.get(rotationL) + RealTime.get(rotationR) + RealTime.get(uturn) + RealTime.get(CC) + RealTime.get(CF) + RealTime.get(SL) + RealTime.get(LSL) + RealTime.get(acc) + RealTime.get(dcc) + RealTime.get(start) + RealTime.get(stop);
+    var accum = RealTime.get("rotationL") + RealTime.get("rotationR") + RealTime.get("uturn") + RealTime.get("CC") + RealTime.get("CF") + RealTime.get("SL") + RealTime.get("LSL") + RealTime.get("acc") + RealTime.get("dcc") + RealTime.get("start") + RealTime.get("stop");
     if (accum < 20) {
       $scope.color = 'green';
       $scope.text = '우수';
@@ -924,6 +927,8 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, RealTime) {
       $scope.color = '#c842f4';
       $scope.text = '이상';
     }
+
+    $scope.data = RealTime.all();
   });
 
 
@@ -1106,6 +1111,23 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
   var list = $firebaseArray(ref);
   var cnt = 0;
   var keepGoing = true;
+  Number.prototype.toHHMMSS = function () {
+    var sec_num = parseInt(this, 10); // don't forget the second param
+    var hours = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours < 10) {
+      hours = "0" + hours;
+    }
+    if (minutes < 10) {
+      minutes = "0" + minutes;
+    }
+    if (seconds < 10) {
+      seconds = "0" + seconds;
+    }
+    return hours + ':' + minutes + ':' + seconds;
+  }
 
   // FIXME: for refresh
   $scope.load = function () {
@@ -1116,22 +1138,18 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
         cnt = 0;
 
         angular.forEach(x, function (x) {
-          console.log(cnt);
           if (keepGoing) {
             if (cnt == list.length) {
               keepGoing = false;
             }
             x.id = cnt;
-            x.averageSpeed = x.distance / (x.drivingTime / 3600);
-            x.drivingTimeStr = Math.round(x.drivingTime / 3600) + "시간" + Math.round(x.drivingTime % 3600 / 60) + "분" + Math.round(x.drivingTime % 3600 % 60) + "초";
+            x.drivingTimeStr = x.drivingTime.toHHMMSS();
             x.dateRecord = x.date.slice(0, 24);
             Records.push(x);
             cnt++;
-            console.log("in");
           }
         })
 
-        console.log("out");
         $scope.items = Records.all();
 
         keepGoing = true;
@@ -1147,6 +1165,7 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
 });
 app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGeolocation) {
   $scope.item = Records.get($stateParams.recordId);
+  var startDate = Date.parse($scope.item.date)+32400000;
   var recordGraph = Highcharts.chart('record', {
     chart: {
       zoomType: 'xy'
@@ -1185,7 +1204,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       name: '속도',
       type: 'column',
 
-      pointStart: Date.parse($scope.item.date),
+      pointStart: startDate,
       pointInterval: 1000, // one second
       tooltip: {
         valueSuffix: ' Km/h'
@@ -1198,7 +1217,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       tooltip: {
         valueSuffix: ' Km/h'
       },
-      pointStart: Date.parse($scope.item.date),
+      pointStart: startDate,
 
       pointInterval: 1000, // one second
       data: Records.get($stateParams.recordId).accList.map(function (item) {
@@ -1209,9 +1228,9 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       tooltip: {
         valueSuffix: ' °/sec'
       },
-      pointStart: Date.parse($scope.item.date),
+      pointStart: startDate,
 
-      pointInterval: 1000, // one second
+      pointInterval: 100, 
       data: Records.get($stateParams.recordId).angularList.map(function (item) {
         return parseInt(item, 10);
       })
@@ -1322,9 +1341,9 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       addInfoWindow(marker, contentString);
     }
 
-    //  markerClusterer = new MarkerClusterer(map, markersArray, {
-    //   imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-    // });
+    markerClusterer = new MarkerClusterer(map, markersArray, {
+      imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+    });
   }
 
   // FIXME: pathSvc -> Records

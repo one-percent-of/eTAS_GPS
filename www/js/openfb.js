@@ -240,7 +240,6 @@ var openFB = (function () {
 
         // url = 'https://graph.facebook.com/v2.5' + obj.path + '?' + toQueryString(params);
         url = 'https://graph.facebook.com/v2.5' + obj.path + '?fields=id,name,email&access_token=' + toQueryString(params);
-        console.log(url);
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {

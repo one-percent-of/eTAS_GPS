@@ -20,29 +20,7 @@
     <ion-content>
       <ion-list id="menuLinks">
         <ion-item menu-close href="#/tab/measure"> Dashboard </ion-item>
-
-
-        <div ng-controller="ProfileCtrl">
-          <ion-item menu-close href="#/app/profile" style="width:300px; ">
-            <div class="card">
-              <div class="item item-divider" style="text-align:center;">
-                Profile
-              </div>
-              <div class="item item-text-wrap">
-                <div class="item item-body">
-                  <img src="http://graph.facebook.com/{{user.id}}/picture?width=150&height=150" />
-                </div>
-              </div>
-              <div class="item item-divider" style="text-align:center;">
-                <p style="font-weight:bold; font-size:1.2em; height:1.4em">{{user.name}}</p>
-                <p>{{user.email}}</p>
-                <p>{{user.city}}</p>
-              </div>
-            </div>
-
-          </ion-item>
-        </div>
-        <ion-item menu-close href="#/app/login" ng-click="fbLogout()"> Logout </ion-item>
+        <ion-item menu-close href="#" ng-click="logout()"> Logout </ion-item>
       </ion-list>
     </ion-content>
   </ion-side-menu>-->

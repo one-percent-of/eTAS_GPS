@@ -31,7 +31,7 @@ app.run(function ($ionicPlatform, $rootScope, $timeout, ngFB) {
 
   $rootScope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState, fromParams) {
     console.log("URL : " + toState.url);
-    if (toState.url == '/dashboard') {
+    if (toState.url == '/measure') {
       console.log("match : " + toState.url);
       $timeout(function () {
         angular.element(document.querySelector('#leftMenu')).removeClass("hide");
@@ -49,7 +49,7 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
   $stateProvider
     .state('app', {
       url: '/app',
-      // abstract: true,
+      abstract: true,
       templateUrl: 'templates/menu.html',
       controller: 'AppCtrl'
     })
@@ -91,7 +91,7 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
           controller: 'DashCtrl'
         }
       },
-      // authStatus: true
+      authStatus: true
     })
     .state('tab.graphs', {
       url: '/graphs',
@@ -129,15 +129,6 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         }
       }
     })
-    .state('tab.tracker', {
-      url: '/tracker',
-      views: {
-        'tab-tracker': {
-          templateUrl: 'templates/tab-tracker.html',
-          controller: 'trackerCtrl'
-        }
-      }
-    })
     .state('app.profile', {
       url: "/profile",
       views: {
@@ -147,6 +138,8 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         }
       }
     })
+
+
 
 
   $ionicConfigProvider.navBar.alignTitle('center');

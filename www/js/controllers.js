@@ -51,7 +51,6 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
       function (response) {
         if (response.status === 'connected') {
           console.log('Facebook login succeeded');
-          $location.url('/#/app')
           location.href = "#/tab/measure";
         } else {
           alert('Facebook login failed');
@@ -68,15 +67,14 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
   };
   //--------------------------------------------
 });
-app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseObject, $firebaseArray, $ionicLoading, $cordovaGeolocation) {
+app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseArray, $ionicLoading, $cordovaGeolocation, RealTime) {
   $scope.toggleLeft = function () {
-    // $ionicSideMenuDelegate.initialize();
     $ionicSideMenuDelegate.toggleLeft();
   };
+
   $scope.options = {
     frequency: 100 // Measure every 100ms
   };
-
 
   // Current measurements
   $scope.measurements = {
@@ -94,13 +92,41 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.watch2 = null;
   $scope.watch3 = null;
 
+  document.addEventListener('deviceready', function () {
 
+    // or with more options
+    TTS
+      .speak({
+        text: '안녕하세요',
+        locale: 'ko-KR',
+        rate: 0.9
+      }, function () {
+        alert('success');
+      }, function (reason) {
+        alert(reason);
+      });
+  }, false);
   const beta = 0.033;
   const gravity = 9.80665;
   const speedLimit = 90;
 
-  var ref2 = firebase.database().ref("realtime");
-  var obj = $firebaseObject(ref2);
+
+  var obj = {
+    accVel: 0,
+    speed: 0,
+    angularVel: 0,
+    rotationL: 0,
+    rotationR: 0,
+    uturn: 0,
+    acc: 0,
+    start: 0,
+    dcc: 0,
+    stop: 0,
+    CC: 0,
+    CF: 0,
+    SL: 0,
+    LSL: 0
+  };
 
 
   // var obj2 = $firebaseObject(ref);
@@ -184,9 +210,11 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var speedGQueue = [];
   var timeGQueue = [];
 
-  // FIXME: add List
   var positionList = [];
   var errorList = [];
+
+  var ref = firebase.database().ref("record");
+  var list = $firebaseArray(ref);
 
   const calTime = 6000;
   const secondCnt = (1000 / $scope.options.frequency);
@@ -197,9 +225,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   //Start Watching method
   function startWatching() {
     if (cnt == 0) {
-      // FIXME: remove inputLat, long, myLatlng, pointList
       var gpsSpeed = 0;
       var accuracy;
+      var markerClusterer;
 
       $ionicLoading.show({
         template: '<ion-spinner icon="bubbles"></ion-spinner><br/>data calibarion!'
@@ -211,10 +239,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         maximumAge: 0
       };
 
-      /* FIXME: inputLat -> lati
-              : pointList -> positionList
-              :  
-       */
       function geo_success(position) {
         lati = position.coords.latitude;
         long = position.coords.longitude;
@@ -231,8 +255,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           timeGQueue.push(position.timestamp);
         }
 
-        $scope.measurements.time = position.timestamp;
-
         if (!!speedGQueue[1]) {
 
           accG = (speedGQueue[1] - speedGQueue[0]);
@@ -246,43 +268,35 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           timeGQueue.shift();
         }
 
-        chartSpeed.series[0].points[0].update(speedGQueue[0]);
 
-        accList.push(accG);
-        speedList.push(speedGQueue[0]);
-        obj.accVel = Math.round(accG);
-        obj.speed = Math.round(speedGQueue[0]);
+        if (!!speedGQueue[0]) {
+          obj.speed = Math.round(speedGQueue[0]);
+          obj.accVel = Math.round(accG);
+        } else {
+          obj.speed = 0;
+          obj.accVel = 0;
+        }
 
-        speedSum += speedGQueue[0];
 
-        // FIXME: zoom: 18
-        //      : pointList -> positionList (ctrl + d)
-        //      : 
+        accList.push(obj.accVel);
+        speedList.push(obj.speed);
+
+        speedSum += obj.speed;
+
+
         var mapOptions = {
           center: myLatlng,
           zoom: 18,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-        var polyOption = {
-          path: positionList,
-          geodesic: true,
-          strokeColor: 'red',
-          strokeOpacity: 1.0,
-          strokeWeight: 3.0,
-          icons: [{ //방향을 알기 위한 화살표 표시
-            icon: {
-              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
-            },
-            offset: '100%',
-            repeat: '150px'
-          }]
-        }
 
-        // FIXME: pathmap -> map
         var map = new google.maps.Map(document.getElementById("map"), mapOptions);
-        var poly = new google.maps.Polyline(polyOption);
+        map.setCenter(myLatlng);
         poly.setMap(map);
-        $scope.map = map;
+
+        markerClusterer = new MarkerClusterer(map, markersArray, {
+          imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+        });
       }
 
       function geo_error() {
@@ -346,6 +360,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         if (cnt > calTime / $scope.options.frequency) {
           tmpQ = madgwick.getQuaternion();
 
+          RealTime.setId(cnt);
+
 
           // //gravity compensation
           // x_a -= gravity * (2 * (tmpQ.x * tmpQ.z - tmpQ.w * tmpQ.y));
@@ -396,11 +412,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           angularList.push(angularVel_cur.toFixed(2));
 
           obj.angularVel = Math.round(angularVel_cur);
-          obj.$save().then(function (ref) {
-            ref.key() === obj.$id; // true
-          }, function (error) {
-            console.log("Error:", error);
-          });
+
 
 
           //angularVel calculate
@@ -440,7 +452,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
 
           //rotation judge
-          if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3 && speedGQueue[0] > 30) {
+          // if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3 && speedGQueue[0] > 30) {
+          if (cnt - judgeTime3 > MaxQueue / 2 && !errorAngle3) {
 
             if (sum3 < -60 && sum3 > -120) {
               judgeCnt3L++;
@@ -453,18 +466,33 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
                 lng: long,
                 number: judgeCntSL
               });
+              TTS
+                .speak({
+                  text: '급좌회전입니다',
+                  locale: 'ko-KR',
+                  rate: 0.9
+                }, function () {
+                  alert('success');
+                }, function (reason) {
+                  alert(reason);
+                });
               judgeTime3 = cnt;
 
               obj.rotationL = judgeCnt3L;
-              obj.$save().then(function (ref) {
-                ref.key() === obj.$id; // true
-              }, function (error) {
-                console.log("Error:", error);
-              });
             }
 
             if (sum3 > 60 && sum3 < 120) {
               judgeCnt3R++;
+              TTS
+                .speak({
+                  text: '급우회전입니다',
+                  locale: 'ko-KR',
+                  rate: 0.9
+                }, function () {
+                  alert('success');
+                }, function (reason) {
+                  alert(reason);
+                });
               errorList.push({
                 name: '급우회전',
                 // time: timeGQueue[1],
@@ -475,11 +503,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeTime3 = cnt;
 
               obj.rotationR = judgeCnt3R;
-              obj.$save().then(function (ref) {
-                ref.key() === obj.$id; // true
-              }, function (error) {
-                console.log("Error:", error);
-              });
             }
 
           }
@@ -499,11 +522,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeTime6 = cnt;
 
               obj.uturn = judgeCnt6;
-              obj.$save().then(function (ref) {
-                ref.key() === obj.$id; // true
-              }, function (error) {
-                console.log("Error:", error);
-              });
             }
           }
 
@@ -520,11 +538,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeTimeAcc = cnt;
 
             obj.acc = judgeCntAcc;
-            obj.$save().then(function (ref) {
-              ref.key() === obj.$id; // true
-            }, function (error) {
-              console.log("Error:", error);
-            });
           }
           //급출발
           if (cnt - judgeTimeStart > secondCnt && speedGQueue[0] <= 5 && accG >= 10) {
@@ -539,11 +552,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeTimeStart = cnt;
 
             obj.start = judgeCntStart;
-            obj.$save().then(function (ref) {
-              ref.key() === obj.$id; // true
-            }, function (error) {
-              console.log("Error:", error);
-            });
           }
 
           //급감속
@@ -559,11 +567,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeTimeDcc = cnt;
 
             obj.dcc = judgeCntDcc;
-            obj.$save().then(function (ref) {
-              ref.key() === obj.$id; // true
-            }, function (error) {
-              console.log("Error:", error);
-            });
           }
 
           //급정지
@@ -579,12 +582,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeTimeStop = cnt;
 
             obj.stop = judgeCntStop;
-
-            obj.$save().then(function (ref) {
-              ref.key() === obj.$id; // true
-            }, function (error) {
-              console.log("Error:", error);
-            });
           }
 
           //급진로변경 && 급앞지르기
@@ -613,11 +610,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             obj.CC = judgeCntCC;
             obj.CF = judgeCntCF;
-            obj.$save().then(function (ref) {
-              ref.key() === obj.$id; // true
-            }, function (error) {
-              console.log("Error:", error);
-            });
 
           }
 
@@ -635,11 +627,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeTimeSL = cnt;
 
             obj.SL = judgeCntSL;
-            obj.$save().then(function (ref) {
-              ref.key() === obj.$id; // true
-            }, function (error) {
-              console.log("Error:", error);
-            });
           }
 
           //장기과속
@@ -659,11 +646,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeTimeLSL = cnt;
 
               obj.LSL = judgeCntLSL;
-              obj.$save().then(function (ref) {
-                ref.key() === obj.$id; // true
-              }, function (error) {
-                console.log("Error:", error);
-              });
             }
           } else {
             CntLSL = 0;
@@ -687,26 +669,13 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           rotationErr.push(errorAngle3);
           uturnErr.push(errorAngle6);
 
+          RealTime.update(obj);
+
 
           compareQueue.shift();
 
         }
-
-        $scope.measurements.speedG = speedGQueue[0];
-        $scope.measurements.accG = accG;
-        $scope.measurements.ang = angularVel_cur.toFixed(2);
-        $scope.measurements.cnt = cnt;
-        $scope.measurements.alertAcc = judgeCntAcc;
-        $scope.measurements.alertStart = judgeCntStart;
-        $scope.measurements.alertDcc = judgeCntDcc;
-        $scope.measurements.alertStop = judgeCntStop;
-        $scope.measurements.alertCC = judgeCntCC;
-        $scope.measurements.alertCF = judgeCntCF;
-        $scope.measurements.alertSL = judgeCntSL;
-        $scope.measurements.alertLSL = judgeCntLSL;
-        $scope.measurements.alertL = judgeCnt3L;
-        $scope.measurements.alertR = judgeCnt3R;
-        $scope.measurements.alertU = judgeCnt6;
+        $scope.measurements.speedG = obj.speed;
 
 
 
@@ -733,52 +702,23 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     sensorQueue = [];
     accQueue = [];
     speedQueue = [];
-    judgeTime3 = judgeTime6 = 0;
-    obj.speed = speed = 0;
-    obj.acc = accG = 0;
-    obj.angularVel = angularVel_cur = 0;
-    obj.CC = 0;
-    obj.CF = 0;
-    obj.dcc = obj.LSL = obj.mylat = obj.rotationL = obj.rotationR = obj.SL = obj.speed = obj.start = obj.stop = 0;
+    cnt = sum3 = sum6 = judgeTime3 = judgeTime6 = judgeTimeAcc = judgeTimeDcc = judgeTimeStart = judgeTimeStop = judgeTimeSL = judgeTimeLSL = 0;
 
     var dateEnd = new Date();
     var drivingTime = (Date.parse(dateEnd) - Date.parse(date)) / 1000;
-
     var distance = (speedSum * (drivingTime / 3600)).toFixed(2);
 
     $scope.watch.clearWatch();
     $scope.watch2.clearWatch();
     navigator.geolocation.clearWatch($scope.watch3);
 
-    $scope.measurements.cnt = cnt = 0;
-    $scope.measurements.sum = sum3 = 0;
-    $scope.measurements.sumU = sum6 = 0;
-    $scope.measurements.speedG = speedGQueue[0] = 0;
-    $scope.measurements.accG = accG = 0;
-    $scope.measurements.ang = angularVel_cur = 0;
-    $scope.measurements.alertL = judgeCnt3L = 0;
-    $scope.measurements.alertR = judgeCnt3R = 0;
-    $scope.measurements.alertU = judgeCnt6 = 0;
-    $scope.measurements.alertAcc = judgeCntAcc = 0;
-    $scope.measurements.alertDcc = judgeCntDcc = 0;
-    $scope.measurements.alertStart = judgeCntStart = 0;
-    $scope.measurements.alertStop = judgeCntStop = 0;
-    $scope.measurements.alertCC = judgeCntCC = 0;
-    $scope.measurements.alertCF = judgeCntCF = 0;
-    $scope.measurements.alertSL = judgeCntSL = 0;
-    $scope.measurements.alertLSL = judgeCntLSL = 0;
-    $scope.measurements.speed = speed = 0;
 
-    obj.$save().then(function (ref) {
-      ref.key() === obj.$id; // true5
-    }, function (error) {
-      console.log("Error:", error);
+    Object.keys(obj).map(function (key, index) {
+      obj[key] *= 0;
     });
+    RealTime.update(obj);
 
 
-
-    let ref = firebase.database().ref("record");
-    let list = $firebaseArray(ref);
     let logData = {
       date,
       drivingTime,
@@ -846,14 +786,13 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.$on('$ionicView.beforeLeave', function () {});
 
 });
-app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseObject) {
+app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, RealTime) {
 
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
   };
 
-  var ref = firebase.database().ref("realtime");
-  var obj = $firebaseObject(ref);
+
 
 
   // The speed gauge
@@ -962,14 +901,12 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseOb
 
   });
 
+  $scope.$watch(function () {
+    return RealTime.getId();
+  }, function (event) {
+    chartSpeed.series[0].points[0].update(RealTime.get("speed"));
 
-
-  obj.$watch(function () {
-
-    chartSpeed.series[0].points[0].update(obj.speed);
-
-
-    var accum = obj.rotationL + obj.rotationR + obj.uturn + obj.CC + obj.CF + obj.SL + obj.LSL + obj.acc + obj.dcc + obj.start + obj.stop;
+    var accum = RealTime.get(rotationL) + RealTime.get(rotationR) + RealTime.get(uturn) + RealTime.get(CC) + RealTime.get(CF) + RealTime.get(SL) + RealTime.get(LSL) + RealTime.get(acc) + RealTime.get(dcc) + RealTime.get(start) + RealTime.get(stop);
     if (accum < 20) {
       $scope.color = 'green';
       $scope.text = '우수';
@@ -992,25 +929,13 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, $firebaseOb
   });
 
 
-
-
-
-  // To make the data available in the DOM, assign it to $scope
-  $scope.data = obj;
-
-
-
-
-
 });
-app.controller('graphsCtrl', function ($scope, $ionicSideMenuDelegate, $firebaseObject) {
+app.controller('graphsCtrl', function ($scope, $ionicSideMenuDelegate, RealTime) {
 
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
   };
 
-  var ref = firebase.database().ref("realtime");
-  var obj = $firebaseObject(ref);
 
 
 
@@ -1160,23 +1085,22 @@ app.controller('graphsCtrl', function ($scope, $ionicSideMenuDelegate, $firebase
     }]
   });
   var i = 0;
-  obj.$watch(function () {
+  $scope.$watch(function () {
+    return RealTime.getId();
+  }, function (event) {
     const time = (new Date()).getTime();
     if (i % 10 == 0) {
-      chartGraph.series[0].addPoint([time + i * 100, obj.speed], true, true);
-      chartGraph.series[1].addPoint([time + i * 100, obj.accVel], true, true);
-      chartGraph2.series[0].addPoint([time + i * 100, obj.angularVel], true, true);
+      chartGraph.series[0].addPoint([time + i * 100, RealTime.get("speed")], true, true);
+      chartGraph.series[1].addPoint([time + i * 100, RealTime.get("accVel")], true, true);
+      chartGraph2.series[0].addPoint([time + i * 100, RealTime.get("angularVel")], true, true);
     }
     i++;
-
   });
-
-  $scope.data = obj;
 
 });
 app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebaseArray, Records) {
 
-  $scope.toggleLeft = function (refresher) {
+  $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
   };
 
@@ -1191,6 +1115,7 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
   $scope.pathx = function (id) {
     Records.setId(id);
   };
+
   // FIXME: for refresh
   $scope.load = function () {
     list.$loaded()
@@ -1200,22 +1125,19 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
         cnt = 0;
 
         angular.forEach(x, function (x) {
-          console.log(cnt);
           if (keepGoing) {
             if (cnt == list.length) {
               keepGoing = false;
             }
             x.id = cnt;
             x.averageSpeed = x.distance / (x.drivingTime / 3600);
-            x.drivingTime = Math.round(x.drivingTime / 3600) + "시간" + Math.round(x.drivingTime % 3600 / 60) + "분" + Math.round(x.drivingTime % 3600 % 60) + "초";
+            x.drivingTimeStr = Math.round(x.drivingTime / 3600) + "시간" + Math.round(x.drivingTime % 3600 / 60) + "분" + Math.round(x.drivingTime % 3600 % 60) + "초";
             x.dateRecord = x.date.slice(0, 24);
             Records.push(x);
             cnt++;
-            console.log("in");
           }
         })
 
-        console.log("out");
         $scope.items = Records.all();
 
         keepGoing = true;
@@ -1231,85 +1153,87 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
 });
 app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGeolocation) {
   $scope.item = Records.get($stateParams.recordId);
-  var recordGraph = Highcharts.chart('record', {
-    chart: {
-      zoomType: 'xy'
-    },
-    title: {
-      text: ''
-    },
-    xAxis: {
-      type: 'datetime',
-      labels: {
-        overflow: 'justify'
-      }
-    },
-    yAxis: {
-      title: {
-        text: 'km/h'
+  /*
+    var recordGraph = Highcharts.chart('record', {
+      chart: {
+        zoomType: 'xy'
       },
-      minorGridLineWidth: 0,
-      gridLineWidth: 0,
-      alternateGridColor: null
-    },
-    plotOptions: {
-      spline: {
-        lineWidth: 4,
-        states: {
-          hover: {
-            lineWidth: 5
-          }
+      title: {
+        text: ''
+      },
+      xAxis: {
+        type: 'datetime',
+        labels: {
+          overflow: 'justify'
+        }
+      },
+      yAxis: {
+        title: {
+          text: 'km/h'
         },
-        marker: {
-          enabled: false
+        minorGridLineWidth: 0,
+        gridLineWidth: 0,
+        alternateGridColor: null
+      },
+      plotOptions: {
+        spline: {
+          lineWidth: 4,
+          states: {
+            hover: {
+              lineWidth: 5
+            }
+          },
+          marker: {
+            enabled: false
+          }
+        }
+      },
+      series: [{
+        name: '속도',
+        type: 'column',
+
+        pointStart: Date.parse($scope.item.date),
+        pointInterval: 1000, // one second
+        tooltip: {
+          valueSuffix: ' Km/h'
+        },
+        data: Records.get($stateParams.recordId).speedList.map(function (item) {
+          return parseInt(item, 10);
+        })
+      }, {
+        name: '가속도',
+        tooltip: {
+          valueSuffix: ' Km/h'
+        },
+        pointStart: Date.parse($scope.item.date),
+
+        pointInterval: 1000, // one second
+        data: Records.get($stateParams.recordId).accList.map(function (item) {
+          return parseInt(item, 10);
+        })
+      }, {
+        name: '각속도',
+        tooltip: {
+          valueSuffix: ' °/sec'
+        },
+        pointStart: Date.parse($scope.item.date),
+
+        pointInterval: 1000, // one second
+        data: Records.get($stateParams.recordId).angularList.map(function (item) {
+          return parseInt(item, 10);
+        })
+      }],
+      navigation: {
+        menuItemStyle: {
+          fontSize: '10px'
         }
       }
-    },
-    series: [{
-      name: '속도',
-      type: 'column',
-
-      pointStart: Date.parse($scope.item.date),
-      pointInterval: 1000, // one second
-      tooltip: {
-        valueSuffix: ' Km/h'
-      },
-      data: Records.get($stateParams.recordId).speedList.map(function (item) {
-        return parseInt(item, 10);
-      })
-    }, {
-      name: '가속도',
-      tooltip: {
-        valueSuffix: ' Km/h'
-      },
-      pointStart: Date.parse($scope.item.date),
-
-      pointInterval: 1000, // one second
-      data: Records.get($stateParams.recordId).accList.map(function (item) {
-        return parseInt(item, 10);
-      })
-    }, {
-      name: '각속도',
-      tooltip: {
-        valueSuffix: ' °/sec'
-      },
-      pointStart: Date.parse($scope.item.date),
-
-      pointInterval: 1000, // one second
-      data: Records.get($stateParams.recordId).angularList.map(function (item) {
-        return parseInt(item, 10);
-      })
-    }],
-    navigation: {
-      menuItemStyle: {
-        fontSize: '10px'
-      }
-    }
-  });
-
+    });
+  */
   var labels = '1234567890';
   var markersArray = [];
   var markerClusterer;
+  var clusterer;
   var items = [];
   var colors = ['red', 'blue', 'purple', 'cyan']
 
@@ -1330,6 +1254,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   // Draw Map
   var lat = 35.742;
   var long = 127.421;
+  // var myLatlng = new google.maps.LatLng($scope.item.positionList[0].lat, $scope.item.positionList[0].lng);
   var myLatlng = new google.maps.LatLng($scope.item.positionList[0].lat, $scope.item.positionList[0].lng);
   var map = new google.maps.Map(document.getElementById("map"), mapOption);
   var poly = new google.maps.Polyline();
@@ -1409,40 +1334,13 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
     markerClusterer = new MarkerClusterer(map, markersArray, {
       imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
     });
-    google.maps.event.addListener(markerClusterer, 'clusterclick', function (cluster) {
-      var content = '';
-
-      // Convert lat/long from cluster object to a usable MVCObject
-      var info = new google.maps.MVCObject;
-      info.set('position', cluster.center_);
-      console.log(cluster.center_.lat());
-      console.log(cluster.center_.lng());
-      //----
-      //Get markers
-      var markers = cluster.getMarkers();
-
-      var titles = "";
-      //Get all the titles
-      for (var i = 0; i < markers.length; i++) {
-        titles += markers[i].getTitle() + "\n";
-      }
-      //----
-
-      var infowindow = new google.maps.InfoWindow();
-      infowindow.close();
-      infowindow.setContent(titles); //set infowindow content to titles
-      infowindow.open(map, info);
-
-    });
-    
-    console.log("center");
-    console.log(markerClusterer);
-    console.log(markerClusterer.clusters_);
-    console.log(markerClusterer.getTotalClustersCenter());
-    console.log(markerClusterer.center_);
+    var clu = [];
+    // clu = markerClusterer.clustersCoord;
+    // console.log("clu");
+    // console.log(clu);
+    // console.log(clu[0]);
   }
 
-  // FIXME: pathSvc -> Records
   $scope.$watch(function () {
     return Records.getId();
   }, function (event) {
@@ -1454,17 +1352,10 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   }, true);
 
 });
-// FIXME: 전체
 app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
   };
-
-  // $scope.imgLoad = function (id) {
-  //   // if (obj.src == -1) 
-  //   console.log("inimg");
-  // 
-  // };
   ngFB.api({
     path: '/me',
     params: {
@@ -1473,9 +1364,11 @@ app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
   }).then(
     function (user) {
       $scope.user = user;
-      document.getElementById("profileImg").src = "http://graph.facebook.com/" + user.id + "/picture?width=150&height=150";
     },
-    function (error) {
-      alert('Facebook error: ' + error.error_description);
-    });
+    function (error) {});
+});
+app.filter('reverse', function () {
+  return function (items) {
+    return items.slice().reverse();
+  };
 });

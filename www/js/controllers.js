@@ -92,20 +92,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.watch2 = null;
   $scope.watch3 = null;
 
-  // document.addEventListener('deviceready', function () {
 
-  //   // or with more options
-  //   TTS
-  //     .speak({
-  //       text: '안녕하세요',
-  //       locale: 'ko-KR',
-  //       rate: 0.75
-  //     }, function () {
-  //       alert('success');
-  //     }, function (reason) {
-  //       alert(reason);
-  //     });
-  // }, false);
+
   const beta = 0.033;
   const gravity = 9.80665;
   const speedLimit = 90;
@@ -233,6 +221,8 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
       $ionicLoading.show({
         template: '<ion-spinner icon="bubbles"></ion-spinner><br/>data calibarion!'
       });
+
+
 
       var posOptions = {
         enableHighAccuracy: true,
@@ -793,7 +783,42 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, RealTime) {
     $ionicSideMenuDelegate.toggleLeft();
   };
 
+  const voiceList = ["급출발입니다. 타이어는 괜찮나요?",
 
+    "급정지입니다. 속도좀 미리줄이지 그러셨어요.",
+
+    "급가속입니다. 엔진의 수명이 깎였습니다.",
+
+    "급감속입니다. 브레이크 마모 육십퍼센트입니다.",
+
+    "과속입니다. 죽음으로 달려가는 중인가요?",
+
+    "장기과속중입니다. 지옥의 문앞에 다다르셨네요.",
+
+    "급좌회전입니다. 차량밖으로 팅겨나간물건은 없는지 확인해보세요.",
+
+    "급우회전입니다. 차량밖으로 팅겨나간물건은 없는지 확인해보세요.",
+
+    "급유턴입니다. 차량전복 위험수위 팔십퍼센트입니다.",
+
+    "급진로변경입니다. 차량전복 위험수위 육십퍼센트입니다.",
+
+    "급앞지르기입니다. 뒤차와의 간격을 유지하세요."
+  ]
+  const voice = function (id, voice) {
+    if (id > 0) {
+      TTS
+        .speak({
+          text: voice,
+          locale: 'ko-KR',
+          rate: 1
+        }, function () {
+          // alert('success');
+        }, function (reason) {
+          alert(reason);
+        });
+    }
+  }
 
 
   // The speed gauge
@@ -901,7 +926,6 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, RealTime) {
     }]
 
   });
-
   $scope.$watch(function () {
     return RealTime.getId();
   }, function (event) {
@@ -929,7 +953,71 @@ app.controller("DashCtrl", function ($scope, $ionicSideMenuDelegate, RealTime) {
     }
 
     $scope.data = RealTime.all();
+
   });
+
+
+  $scope.$watch(function () {
+    return RealTime.get("start");
+  }, function (event) {
+    voice(event, voiceList[0]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("stop");
+  }, function (event) {
+    voice(event, voiceList[1]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("acc");
+  }, function (event) {
+    voice(event, voiceList[2]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("dcc");
+  }, function (event) {
+    voice(event, voiceList[3]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("SL");
+  }, function (event) {
+    voice(event, voiceList[4]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("LSL");
+  }, function (event) {
+    voice(event, voiceList[5]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("rotationL");
+  }, function (event) {
+    voice(event, voiceList[6]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("rotationR");
+  }, function (event) {
+    voice(event, voiceList[7]);
+  });
+
+  $scope.$watch(function () {
+    return RealTime.get("uturn");
+  }, function (event) {
+    voice(event, voiceList[8]);
+  });
+  $scope.$watch(function () {
+    return RealTime.get("CC");
+  }, function (event) {
+    voice(event, voiceList[9]);
+  });
+
+  $scope.$watch(function () {
+    return RealTime.get("CF");
+  }, function (event) {
+    voice(event, voiceList[10]);
+  });
+
+
+
+
 
 
 });
@@ -1165,7 +1253,7 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
 });
 app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGeolocation) {
   $scope.item = Records.get($stateParams.recordId);
-  var startDate = Date.parse($scope.item.date)+32400000;
+  var startDate = Date.parse($scope.item.date) + 32400000;
   var recordGraph = Highcharts.chart('record', {
     chart: {
       zoomType: 'xy'
@@ -1230,7 +1318,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       },
       pointStart: startDate,
 
-      pointInterval: 100, 
+      pointInterval: 100,
       data: Records.get($stateParams.recordId).angularList.map(function (item) {
         return parseInt(item, 10);
       })
@@ -1280,7 +1368,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
     // setMarkers(locations);
     console.log("error");
     console.log($scope.item);
-    setMarkers($scope.item.errorList);
+    setMarkers($scope.item);
 
     // Draw Path
     var polyOption = {
@@ -1326,18 +1414,18 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   }
   // sets the map on all markers in the array.
   function setMarkers(locations) {
-    for (var i = 0; i < locations.length; i++) {
+    for (var i = 0; i < locations.errorList.length; i++) {
       var marker = new google.maps.Marker({
-        position: locations[i],
+        position: locations.errorList[i],
         // label: labels[i++ % labels.length],
         map: map,
       })
       marker.setMap(map);
       markersArray.push(marker);
 
-      var contentString = '<div id="content">' +
-        '<h4>' + locations[i].name + '</h4>' + '<div>2017년 6월 2일</div>' +
-        '</div>';
+      console.log(locations);
+
+      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>'+locations.dateRecord+'</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
 

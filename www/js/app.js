@@ -46,6 +46,13 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
   // Learn more here: https://github.com/angular-ui/ui-router
   // Set up the various states which the app can be in.
   // Each state's controller can be found in controllers.js
+
+
+  $ionicConfigProvider.backButton.previousTitleText(false);
+  $ionicConfigProvider.backButton.text('기록')
+
+
+
   $stateProvider
     .state('app', {
       url: '/app',

@@ -63,3 +63,42 @@ app.factory('RealTime', function () {
     }
   };
 });
+
+app.factory('errorRecords', function () {
+  // Might use a resource here that returns a JSON array
+
+  // Some fake testing data
+  var items = [];
+  var id;
+
+  return {
+    all: function () {
+      return items;
+    },
+    remove: function (id) {
+      items.splice(items.indexOf(id), 1);
+    },
+    get: function (recordId) {
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].id === parseInt(recordId)) {
+          return items[i];
+        }
+      }
+      return null;
+    },
+    push: function (value) {
+      items.push(value);
+      console.log("item");
+      console.log(items);
+    },
+    setId: function (id_){
+      id = id_;
+    },
+    getId : function(){
+      return id;
+    },
+    clear : function(){
+      items = [];
+    }
+  };
+});

@@ -10,6 +10,7 @@
   <link href="lib/ionic/css/ionic.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
   <link href="css/custom-app.css" rel="stylesheet">
+  <link href="css/animate.css" rel="stylesheet">
 
   <!--charts-->
   <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -71,8 +72,8 @@
     <ion-side-menus>
       <!-- Center content -->
       <ion-side-menu-content drag-content="false">
-        <ion-nav-bar class="bar-positive nav-title-slide-ios7">
-          <ion-nav-back-button class="button-icon icon ion-ios7-arrow-back"></ion-nav-back-button>
+        <ion-nav-bar class="bar-dark nav-title-slide-ios7">
+          <ion-nav-back-button class="button-icon icon ion-ios-arrow-back"space></ion-nav-back-button>
         </ion-nav-bar>
 
         <ion-nav-view class="slide-left-right"></ion-nav-view>
@@ -80,12 +81,13 @@
 
       <!-- Left menu -->
       <ion-side-menu side="left" class="loginBg">
-        <ion-header-bar class="bar-stable bar-positive">
+        <ion-header-bar class="bar-stable bar-dark">
           <h1 class="title">Menu</h1>
         </ion-header-bar>
-        <ion-content>
-          <ion-list id="menuLinks">
+        <ion-content >
+          <ion-list id="menuLinks" >
             <ion-item menu-close href="#/tab/measure"> Dashboard </ion-item>
+            <ion-item menu-close href="#/app/profile"> Profile </ion-item>
 
 <!--
 

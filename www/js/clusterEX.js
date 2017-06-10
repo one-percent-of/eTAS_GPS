@@ -868,11 +868,11 @@ MarkerClusterer.prototype.createClusters_ = function () {
 
   for (var i = 0, marker; marker = this.markers_[i]; i++) {
     if (!marker.isAdded && this.isMarkerInBounds_(marker, bounds)) {
-      // not Added Mark
+      // TODO: not Added Mark
       this.addToClosestCluster_(marker);
     } else if (this.isMarkerInBounds_(marker, bounds)) {
-      //FIXME: 미확인
-      // All mark is in Cluster
+      // FIXME: 미확인
+      // TODO: All mark is in Cluster
       
     }
   }

@@ -1,10 +1,7 @@
-1. tab.records
-    * ng-click="~~
-2. controller = records
-    *    $scope.disableLoading = function () {
-    return keepGoing;
-    }
-    *    $scope.pathx = function (id) {
-        Records.setId(id);
-        };
-3. 
+1. bounceInLeft
+2. bounceOutLeft
+3. lightSpeedIn
+4. lightSpeedOut
+
+
+animated infinite bounce

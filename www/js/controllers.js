@@ -99,7 +99,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
       .speak({
         text: '안녕하세요',
         locale: 'ko-KR',
-        rate: 0.9
+        rate: 0.75
       }, function () {
         alert('success');
       }, function (reason) {
@@ -157,6 +157,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var x_a, y_a, z_a, x_g, y_g, z_g, date, lati, long, myLatlng, initQ, tmpQ, cnt = 0,
     sum3 = 0,
     sum6 = 0,
+    TTStime = 0,
     judgeTime3 = 0,
     judgeTime6 = 0,
     judgeTimeAcc = 0,
@@ -210,6 +211,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var speedGQueue = [];
   var timeGQueue = [];
 
+  // FIXME: add List
   var positionList = [];
   var errorList = [];
 
@@ -221,13 +223,14 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var mixBut = document.getElementById("mixBut");
 
   mixBut.addEventListener("click", startWatching);
-
+  
+  
   //Start Watching method
   function startWatching() {
     if (cnt == 0) {
+      // FIXME: remove inputLat, long, myLatlng, pointList
       var gpsSpeed = 0;
       var accuracy;
-      var markerClusterer;
 
       $ionicLoading.show({
         template: '<ion-spinner icon="bubbles"></ion-spinner><br/>data calibarion!'
@@ -239,6 +242,10 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         maximumAge: 0
       };
 
+      /* FIXME: inputLat -> lati
+              : pointList -> positionList
+              :  
+       */
       function geo_success(position) {
         lati = position.coords.latitude;
         long = position.coords.longitude;
@@ -283,20 +290,34 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
         speedSum += obj.speed;
 
-
+        // FIXME: zoom: 18
+        //      : pointList -> positionList (ctrl + d)
+        //      : 
         var mapOptions = {
           center: myLatlng,
           zoom: 18,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
+        var polyOption = {
+          path: positionList,
+          geodesic: true,
+          strokeColor: 'red',
+          strokeOpacity: 1.0,
+          strokeWeight: 3.0,
+          icons: [{ //방향을 알기 위한 화살표 표시
+            icon: {
+              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+            },
+            offset: '100%',
+            repeat: '150px'
+          }]
+        }
 
+        // FIXME: pathmap -> map
         var map = new google.maps.Map(document.getElementById("map"), mapOptions);
-        map.setCenter(myLatlng);
+        var poly = new google.maps.Polyline(polyOption);
         poly.setMap(map);
-
-        markerClusterer = new MarkerClusterer(map, markersArray, {
-          imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-        });
+        $scope.map = map;
       }
 
       function geo_error() {
@@ -356,6 +377,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           initQ = madgwick.conj(); //Current posture estimation
           date = Date();
           $ionicLoading.hide();
+          location.href = "#/tab/dash";
         }
         if (cnt > calTime / $scope.options.frequency) {
           tmpQ = madgwick.getQuaternion();
@@ -459,6 +481,18 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCnt3L++;
               // FIXME: errorList
               // 다른 errorList와 name만 다릅니다!
+              if (cnt - TTStime > MaxQueue) {
+                TTStime = cnt;
+                TTS
+                  .speak({
+                    text: '급좌회전입니다. 튀어나간 물건은 없나요?',
+                    locale: 'ko-KR',
+                    rate: 0.9
+                  }, function () {}, function (reason) {
+                    // alert(reason);
+                  });
+              }
+
               errorList.push({
                 name: '급좌회전',
                 // time: timeGQueue[1],
@@ -466,16 +500,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
                 lng: long,
                 number: judgeCntSL
               });
-              TTS
-                .speak({
-                  text: '급좌회전입니다',
-                  locale: 'ko-KR',
-                  rate: 0.9
-                }, function () {
-                  alert('success');
-                }, function (reason) {
-                  alert(reason);
-                });
               judgeTime3 = cnt;
 
               obj.rotationL = judgeCnt3L;
@@ -483,23 +507,24 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             if (sum3 > 60 && sum3 < 120) {
               judgeCnt3R++;
-              TTS
-                .speak({
-                  text: '급우회전입니다',
-                  locale: 'ko-KR',
-                  rate: 0.9
-                }, function () {
-                  alert('success');
-                }, function (reason) {
-                  alert(reason);
+              if (cnt - TTStime > MaxQueue) {
+                TTStime = cnt;
+                TTS
+                  .speak({
+                    text: '급 우회전입니다. 생명은 안전하신가요?',
+                    locale: 'ko-KR',
+                    rate: 0.9
+                  }, function () {}, function (reason) {
+                    // alert(reason);
+                  });
+              } else
+                errorList.push({
+                  name: '급우회전',
+                  // time: timeGQueue[1],
+                  lat: lati,
+                  lng: long,
+                  number: judgeCntSL
                 });
-              errorList.push({
-                name: '급우회전',
-                // time: timeGQueue[1],
-                lat: lati,
-                lng: long,
-                number: judgeCntSL
-              });
               judgeTime3 = cnt;
 
               obj.rotationR = judgeCnt3R;
@@ -1109,13 +1134,6 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
   var cnt = 0;
   var keepGoing = true;
 
-  $scope.disableLoading = function () {
-    return keepGoing;
-  }
-  $scope.pathx = function (id) {
-    Records.setId(id);
-  };
-
   // FIXME: for refresh
   $scope.load = function () {
     list.$loaded()
@@ -1125,6 +1143,7 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
         cnt = 0;
 
         angular.forEach(x, function (x) {
+          console.log(cnt);
           if (keepGoing) {
             if (cnt == list.length) {
               keepGoing = false;
@@ -1135,9 +1154,11 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
             x.dateRecord = x.date.slice(0, 24);
             Records.push(x);
             cnt++;
+            console.log("in");
           }
         })
 
+        console.log("out");
         $scope.items = Records.all();
 
         keepGoing = true;
@@ -1153,87 +1174,85 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
 });
 app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGeolocation) {
   $scope.item = Records.get($stateParams.recordId);
-  /*
-    var recordGraph = Highcharts.chart('record', {
-      chart: {
-        zoomType: 'xy'
-      },
+  var recordGraph = Highcharts.chart('record', {
+    chart: {
+      zoomType: 'xy'
+    },
+    title: {
+      text: ''
+    },
+    xAxis: {
+      type: 'datetime',
+      labels: {
+        overflow: 'justify'
+      }
+    },
+    yAxis: {
       title: {
-        text: ''
+        text: 'km/h'
       },
-      xAxis: {
-        type: 'datetime',
-        labels: {
-          overflow: 'justify'
-        }
-      },
-      yAxis: {
-        title: {
-          text: 'km/h'
-        },
-        minorGridLineWidth: 0,
-        gridLineWidth: 0,
-        alternateGridColor: null
-      },
-      plotOptions: {
-        spline: {
-          lineWidth: 4,
-          states: {
-            hover: {
-              lineWidth: 5
-            }
-          },
-          marker: {
-            enabled: false
+      minorGridLineWidth: 0,
+      gridLineWidth: 0,
+      alternateGridColor: null
+    },
+    plotOptions: {
+      spline: {
+        lineWidth: 4,
+        states: {
+          hover: {
+            lineWidth: 5
           }
-        }
-      },
-      series: [{
-        name: '속도',
-        type: 'column',
-
-        pointStart: Date.parse($scope.item.date),
-        pointInterval: 1000, // one second
-        tooltip: {
-          valueSuffix: ' Km/h'
         },
-        data: Records.get($stateParams.recordId).speedList.map(function (item) {
-          return parseInt(item, 10);
-        })
-      }, {
-        name: '가속도',
-        tooltip: {
-          valueSuffix: ' Km/h'
-        },
-        pointStart: Date.parse($scope.item.date),
-
-        pointInterval: 1000, // one second
-        data: Records.get($stateParams.recordId).accList.map(function (item) {
-          return parseInt(item, 10);
-        })
-      }, {
-        name: '각속도',
-        tooltip: {
-          valueSuffix: ' °/sec'
-        },
-        pointStart: Date.parse($scope.item.date),
-
-        pointInterval: 1000, // one second
-        data: Records.get($stateParams.recordId).angularList.map(function (item) {
-          return parseInt(item, 10);
-        })
-      }],
-      navigation: {
-        menuItemStyle: {
-          fontSize: '10px'
+        marker: {
+          enabled: false
         }
       }
-    });
-  */
+    },
+    series: [{
+      name: '속도',
+      type: 'column',
+
+      pointStart: Date.parse($scope.item.date),
+      pointInterval: 1000, // one second
+      tooltip: {
+        valueSuffix: ' Km/h'
+      },
+      data: Records.get($stateParams.recordId).speedList.map(function (item) {
+        return parseInt(item, 10);
+      })
+    }, {
+      name: '가속도',
+      tooltip: {
+        valueSuffix: ' Km/h'
+      },
+      pointStart: Date.parse($scope.item.date),
+
+      pointInterval: 1000, // one second
+      data: Records.get($stateParams.recordId).accList.map(function (item) {
+        return parseInt(item, 10);
+      })
+    }, {
+      name: '각속도',
+      tooltip: {
+        valueSuffix: ' °/sec'
+      },
+      pointStart: Date.parse($scope.item.date),
+
+      pointInterval: 1000, // one second
+      data: Records.get($stateParams.recordId).angularList.map(function (item) {
+        return parseInt(item, 10);
+      })
+    }],
+    navigation: {
+      menuItemStyle: {
+        fontSize: '10px'
+      }
+    }
+  });
+
   var labels = '1234567890';
   var markersArray = [];
   var markerClusterer;
-  var clusterer;
   var items = [];
   var colors = ['red', 'blue', 'purple', 'cyan']
 
@@ -1254,7 +1273,6 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   // Draw Map
   var lat = 35.742;
   var long = 127.421;
-  // var myLatlng = new google.maps.LatLng($scope.item.positionList[0].lat, $scope.item.positionList[0].lng);
   var myLatlng = new google.maps.LatLng($scope.item.positionList[0].lat, $scope.item.positionList[0].lng);
   var map = new google.maps.Map(document.getElementById("map"), mapOption);
   var poly = new google.maps.Polyline();
@@ -1270,7 +1288,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
     // setMarkers(locations);
     console.log("error");
     console.log($scope.item);
-    setMarkers($scope.item.errorList);
+    setMarkers($scope.item);
 
     // Draw Path
     var polyOption = {
@@ -1316,31 +1334,25 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   }
   // sets the map on all markers in the array.
   function setMarkers(locations) {
-    for (var i = 0; i < locations.length; i++) {
+    for (var i = 0; i < locations.errorList.length; i++) {
       var marker = new google.maps.Marker({
-        position: locations[i],
+        position: locations.errorList[i],
         // label: labels[i++ % labels.length],
         map: map,
       })
       marker.setMap(map);
       markersArray.push(marker);
 
-      var contentString = '<div id="content">' +
-        '<h4>' + locations[i].name + '</h4>' + '<div>2017년 6월 2일</div>' +
-        '</div>';
+        var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>'+ locations.date+'</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
 
-    markerClusterer = new MarkerClusterer(map, markersArray, {
-      imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-    });
-    var clu = [];
-    // clu = markerClusterer.clustersCoord;
-    // console.log("clu");
-    // console.log(clu);
-    // console.log(clu[0]);
+    //  markerClusterer = new MarkerClusterer(map, markersArray, {
+    //   imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+    // });
   }
 
+  // FIXME: pathSvc -> Records
   $scope.$watch(function () {
     return Records.getId();
   }, function (event) {
@@ -1352,6 +1364,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   }, true);
 
 });
+// FIXME: 전체
 app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
@@ -1364,6 +1377,7 @@ app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
   }).then(
     function (user) {
       $scope.user = user;
+      
     },
     function (error) {});
 });

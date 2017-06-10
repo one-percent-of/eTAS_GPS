@@ -23,13 +23,13 @@ app.factory('Records', function () {
     push: function (value) {
       items.push(value);
     },
-    setId: function (id_) {
+    setId: function (id_){
       id = id_;
     },
-    getId: function () {
+    getId : function(){
       return id;
     },
-    clear: function () {
+    clear : function(){
       items = [];
     }
   };
@@ -46,20 +46,20 @@ app.factory('RealTime', function () {
     all: function () {
       return items;
     },
-    setId: function (id_) {
+    setId: function (id_){
       id = id_;
     },
     get: function (recordId) {
       return items[recordId];
     },
-    getId: function () {
+    getId : function(){
       return id;
     },
-    clear: function () {
+    clear : function(){
       items = {};
     },
-    update: function (value) {
-      items = Object.assign({}, value);
+    update : function(value){
+      items = Object.assign({},value);
     }
   };
 });

@@ -116,7 +116,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     LSL: 0
   };
 
-
   // var obj2 = $firebaseObject(ref);
   // obj.$remove();
   // obj2.$remove();
@@ -1395,11 +1394,12 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   var poly = new google.maps.Polyline();
 
 
+
   // Draw Map function
   function drawMarker() {
     // Set center and zoom
     map.setCenter(myLatlng);
-    map.setZoom(13);
+    map.setZoom(18);
 
     // Draw Marker 
     // setMarkers(locations);
@@ -1465,10 +1465,11 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + locations.dateRecord + '</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
+    markerClusterer = new MarkerClusterer(map, markersArray, {
+      //   imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+    });
 
-    // markerClusterer = new MarkerClusterer(map, markersArray, {
-    //   imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-    // });
+
   }
 
   // FIXME: pathSvc -> Records
@@ -1501,6 +1502,7 @@ app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
 });
 app.filter('reverse', function () {
   return function (items) {
-    return items.slice().reverse();
+    // return items.slice().reverse();
+    return items;
   };
 });

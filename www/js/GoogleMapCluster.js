@@ -66,26 +66,22 @@ function MarkerClusterer(map, opt_markers, opt_options) {
   // there is no point going ahead :)
   this.extend(MarkerClusterer, google.maps.OverlayView);
   this.map_ = map;
-
   /**
    * @type {Array.<google.maps.Marker>}
    * @private
    */
+  this.currentPosition;
   this.markers_ = [];
-
   /**
    *  @type {Array.<Cluster>}
    */
   this.clusters_ = [];
   this.clustersCoord = [];
-
   this.sizes = [53, 56, 66, 78, 90];
-
   /**
    * @private
    */
   this.styles_ = [];
-
   /**
    * @type {boolean}
    * @private
@@ -93,77 +89,72 @@ function MarkerClusterer(map, opt_markers, opt_options) {
   this.ready_ = false;
 
 
+  TTS
+    .speak({
+      text: '안녕하세요',
+      locale: 'ko-KR',
+      rate: 1
+    }, function () {
+      // alert('success');
+    }, function (reason) {
+      alert(reason);
+    });
   //TODO: options
   var options = opt_options || {};
-
   /**
    * @type {number}
    * @private
    */
   this.gridSize_ = options['gridSize'] || 60;
-
   /**
    * @private
    */
   this.minClusterSize_ = options['minimumClusterSize'] || 2;
-
-
   /**
    * @type {?number}
    * @private
    */
   this.maxZoom_ = options['maxZoom'] || null;
-
-  this.styles_ = options['styles'] || [];
-
+  // this.styles_ = options['styles'] || [];
   /**
    * @type {string}
    * @private
    */
-  this.imagePath_ = options['imagePath'] ||
-    this.MARKER_CLUSTER_IMAGE_PATH_;
-
+  // this.imagePath_ = options['imagePath'] || this.MARKER_CLUSTER_IMAGE_PATH_;
   /**
    * @type {string}
    * @private
    */
-  this.imageExtension_ = options['imageExtension'] ||
-    this.MARKER_CLUSTER_IMAGE_EXTENSION_;
-
+  // this.imageExtension_ = options['imageExtension'] || this.MARKER_CLUSTER_IMAGE_EXTENSION_;
   /**
    * @type {boolean}
    * @private
    */
   this.zoomOnClick_ = true;
-
   if (options['zoomOnClick'] != undefined) {
     this.zoomOnClick_ = options['zoomOnClick'];
   }
-
   /**
    * @type {boolean}
    * @private
    */
   this.averageCenter_ = false;
-
   if (options['averageCenter'] != undefined) {
     this.averageCenter_ = options['averageCenter'];
   }
   //TODO: option End
 
 
-  this.setupStyles_();
-
+  // this.setupStyles_();
   this.setMap(map);
-
   /**
    * @type {number}
    * @private
    */
-  this.prevZoom_ = this.map_.getZoom();
-
+  // this.prevZoom_ = this.map_.getZoom();
   // Add the map event listeners
   var that = this;
+  /*
   google.maps.event.addListener(this.map_, 'zoom_changed', function () {
     var zoom = that.map_.getZoom();
 
@@ -172,9 +163,10 @@ function MarkerClusterer(map, opt_markers, opt_options) {
       that.resetViewport();
     }
   });
-  
+  */
   // transition map
   google.maps.event.addListener(this.map_, 'idle', function () {
+
     that.redraw();
   });
 
@@ -182,20 +174,7 @@ function MarkerClusterer(map, opt_markers, opt_options) {
   if (opt_markers && opt_markers.length) {
     this.addMarkers(opt_markers, false);
   }
-
-
-  // console.log("inFunction");
-  // console.log(this.clustersCoord);
-
 }
-
-
-
-
-
-
-
-
 
 
 //  TODO:
@@ -251,8 +230,8 @@ MarkerClusterer.prototype.draw = function () {};
 
 /**
  * Sets up the styles object.
- *
  * @private
+ * TODO: 
  */
 MarkerClusterer.prototype.setupStyles_ = function () {
   if (this.styles_.length) {
@@ -261,7 +240,6 @@ MarkerClusterer.prototype.setupStyles_ = function () {
 
   for (var i = 0, size; size = this.sizes[i]; i++) {
     this.styles_.push({
-      url: this.imagePath_ + (i + 1) + '.' + this.imageExtension_,
       height: size,
       width: size
     });
@@ -280,7 +258,6 @@ MarkerClusterer.prototype.fitMapToMarkers = function () {
 
   this.map_.fitBounds(bounds);
 };
-
 
 /**
  *  Sets the styles.
@@ -590,8 +567,8 @@ MarkerClusterer.prototype.getMap = function () {
 
 /**
  * Sets the google map that the clusterer is associated with.
- *
  * @param {google.maps.Map} map The map.
+ * TODO:
  */
 MarkerClusterer.prototype.setMap = function (map) {
   this.map_ = map;
@@ -680,6 +657,7 @@ MarkerClusterer.prototype.getExtendedBounds = function (bounds) {
  * @param {google.maps.LatLngBounds} bounds The bounds to check against.
  * @return {boolean} True if the marker is in the bounds.
  * @private
+ * TODO:
  */
 MarkerClusterer.prototype.isMarkerInBounds_ = function (marker, bounds) {
   return bounds.contains(marker.getPosition());
@@ -739,9 +717,68 @@ MarkerClusterer.prototype.repaint = function () {
 
 /**
  * Redraws the clusters.
+ * TODO:
  */
 MarkerClusterer.prototype.redraw = function () {
   console.log("----------------------");
+  var map_lat = this.map_.getCenter().lat();
+  var map_lng = this.map_.getCenter().lng();
+
+  var myLatlng = new google.maps.LatLng(map_lat, map_lng);
+
+  // FIXME: current Position
+  // 나중에 삭제
+
+  var currentPosition = new google.maps.Marker({
+    position: myLatlng,
+    map: this.map_,
+    icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+  });
+
+  this.currentPosition = currentPosition;
+  this.currentPosition.setMap(this.map_);
+
+
+  for (var indexOfCluster = 0; indexOfCluster < this.clusters_.length; indexOfCluster++) {
+
+    var element_lat = this.clusters_[indexOfCluster].getCenter().lat();
+    var element_lng = this.clusters_[indexOfCluster].getCenter().lng();
+
+    var distanceBetweenPositionAndCluster;
+
+    distanceBetweenPositionAndCluster = (Math.pow((map_lat - element_lat), 2) + Math.pow((map_lng - element_lng), 2)) * 1000 * 1000;
+
+    /*
+      Defined cluster
+    */
+    console.log("map Centerr");
+    console.log(map_lat);
+    console.log(map_lng);
+
+    console.log("getcenter");
+    console.log(element_lat);
+    console.log(element_lng);
+    console.log(distanceBetweenPositionAndCluster);
+    if (distanceBetweenPositionAndCluster < 0.3 && !(this.clusters_[indexOfCluster].getTTS_())) {
+
+      TTS
+        .speak({
+          text: '급가속 구간입니다. 운전에 유의해주시기 바랍니다.',
+          locale: 'ko-KR',
+          rate: 1
+        }, function () {
+          // alert('success');
+        }, function (reason) {
+          alert(reason);
+        });
+
+      this.clusters_[indexOfCluster].setTTS_(true);
+
+    }
+    if (distanceBetweenPositionAndCluster >= 1 && this.clusters_[indexOfCluster].getTTS_()) {
+      this.clusters_[indexOfCluster].setTTS_(false);
+    }
+  }
   this.createClusters_();
 };
 
@@ -777,6 +814,7 @@ MarkerClusterer.prototype.distanceBetweenPoints_ = function (p1, p2) {
  *
  * @param {google.maps.Marker} marker The marker to add.
  * @private
+ * TODO:
  */
 MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
   var distance = 40000; // Some large number
@@ -810,39 +848,38 @@ MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
     console.log(cluster.getCenter().lat());
     console.log(cluster.getCenter().lng());
     console.log(cluster);
-    // this.clustersCoord.push({
-    //   lat: cluster.getCenter().lat(),
-    //   lng: cluster.getCenter().lng()
-    // });
     console.log(this.clustersCoord);
+
+    var myLatlng = new google.maps.LatLng(cluster.getCenter().lat(), cluster.getCenter().lng());
+
+    // FIXME: current Position
+    // 나중에 삭제
+    var clusterPosition = new google.maps.Marker({
+      position: myLatlng,
+      map: this.map_
+    });
+
+    clusterPosition.setMap(this.map_);
   }
 };
 
 MarkerClusterer.prototype.getClustersCenter = function () {
   var centerArray = [];
-  console.log("cluster");
-  console.log(this.getClusters());
   var cluster = this.getClusters();
-  console.log("cluster.0");
-  console.log(cluster.Cluster);
 
   for (var i = 0, cluster; cluster = this.clusters_[i]; i++) {
-    console.log("center");
     var center = cluster.getCenter();
     centerArray.push(center);
-    console.log("center");
-    console.log(center);
   }
   return centerArray;
-
 };
 
 
 
 /**
  * Creates the clusters.
- *
  * @private
+ * TODO:
  */
 MarkerClusterer.prototype.createClusters_ = function () {
   if (!this.ready_) {
@@ -859,6 +896,8 @@ MarkerClusterer.prototype.createClusters_ = function () {
   for (var i = 0, marker; marker = this.markers_[i]; i++) {
     if (!marker.isAdded && this.isMarkerInBounds_(marker, bounds)) {
       this.addToClosestCluster_(marker);
+    } else {
+
     }
   }
 };
@@ -882,9 +921,20 @@ function Cluster(markerClusterer) {
   this.center_ = null;
   this.markers_ = [];
   this.bounds_ = null;
+  this.TTS_ = false;
   this.clusterIcon_ = new ClusterIcon(this, markerClusterer.getStyles(),
     markerClusterer.getGridSize());
 }
+
+// 
+Cluster.prototype.getTTS_ = function () {
+  return this.TTS_;
+};
+// 
+Cluster.prototype.setTTS_ = function (TTSstate) {
+  this.TTS_ = TTSstate;
+};
+
 
 /**
  * Determins if a marker is already added to the cluster.
@@ -932,6 +982,8 @@ Cluster.prototype.addMarker = function (marker) {
 
   marker.isAdded = true;
   this.markers_.push(marker);
+  console.log(this.markers_);
+
 
   var len = this.markers_.length;
   if (len < this.minClusterSize_ && marker.getMap() != this.map_) {
@@ -950,7 +1002,6 @@ Cluster.prototype.addMarker = function (marker) {
     marker.setMap(null);
   }
 
-  this.updateIcon();
   return true;
 };
 

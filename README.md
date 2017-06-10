@@ -14,8 +14,9 @@
 2. cordova plugin add cordova-plugin-gyroscope
 3. cordova plugin add cordova-plugin-whitelist
 4. cordova plugin add ionic-plugin-keyboard
-5. cordova platform add android
-6. cordova run android
+5. cordova plugin add cordova-plugin-tts
+6. cordova platform add android
+7. cordova run android
 
 ## Simulation
-https://youtu.be/O_8ZwVq9o3w
+https://youtu.be/W95uLc0jgCo

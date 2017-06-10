@@ -172,7 +172,7 @@ function MarkerClusterer(map, opt_markers, opt_options) {
       that.resetViewport();
     }
   });
-
+  
   // transition map
   google.maps.event.addListener(this.map_, 'idle', function () {
     that.redraw();
@@ -796,7 +796,6 @@ MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
 
   if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)) {
     clusterToAddTo.addMarker(marker);
-    console.log("INNNNNNNNNr");
   } else {
     var cluster = new Cluster(this);
 
@@ -805,26 +804,17 @@ MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
     //FIXME: 여기서 변경
     // 
     console.log("map Centerr");
-    // console.log(this.map_.getCenter().lat());
-    // console.log(this.map_.getCenter().lng());
-    // console.log("getcenter");
-    // console.log(cluster.getCenter().lat());
-    // console.log(cluster.getCenter().lng());
-    // console.log(cluster);
-
-    var map_lat = this.map_.getCenter().lat();
-    var map_lng = this.map_.getCenter().lng();
-
-    var cluster_lat = cluster.getCenter().lat();
-    var cluster_lng = cluster.getCenter().lng();
-
-    console.log((Math.pow((map_lat - cluster_lat), 2) + Math.pow((map_lng - cluster_lng), 2)) * 1000000);
-    // if((Math.pow((map_lat-cluster_lat),2) + Math.pow((map_lng-cluster_lng),2)) > ) 
+    console.log(this.map_.getCenter().lat());
+    console.log(this.map_.getCenter().lng());
+    console.log("getcenter");
+    console.log(cluster.getCenter().lat());
+    console.log(cluster.getCenter().lng());
+    console.log(cluster);
     // this.clustersCoord.push({
     //   lat: cluster.getCenter().lat(),
     //   lng: cluster.getCenter().lng()
     // });
-    // console.log(this.clustersCoord);
+    console.log(this.clustersCoord);
   }
 };
 
@@ -868,12 +858,7 @@ MarkerClusterer.prototype.createClusters_ = function () {
 
   for (var i = 0, marker; marker = this.markers_[i]; i++) {
     if (!marker.isAdded && this.isMarkerInBounds_(marker, bounds)) {
-      // TODO: not Added Mark
       this.addToClosestCluster_(marker);
-    } else if (this.isMarkerInBounds_(marker, bounds)) {
-      // FIXME: 미확인
-      // TODO: All mark is in Cluster
-      
     }
   }
 };

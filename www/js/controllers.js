@@ -92,12 +92,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.watch2 = null;
   $scope.watch3 = null;
 
-
-
   const beta = 0.033;
   const gravity = 9.80665;
   const speedLimit = 80;
-
 
   var obj = {
     accVel: 0,
@@ -116,8 +113,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     LSL: 0
   };
 
-
-
   /*
     Clustering
   */
@@ -127,7 +122,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var myLatlng = new google.maps.LatLng(lat, long);
   var mapOption = {
     center: myLatlng,
-    zoom: 13,
+    zoom: 16,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
   var map = new google.maps.Map(document.getElementById("errormap"), mapOption);
@@ -139,7 +134,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
   errorList.$loaded()
     .then(function (x) {
-      // $scope.forminput = {};
       errorRecords.clear();
       errorCnt = 0;
 
@@ -154,24 +148,56 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         }
         keepGoing = true;
       })
+
+
+      var errorItem = errorRecords.all();
+
+      // alert(errorItem[0]);
+      function errorClustering(errItem, markersArray, map) {
+        var tempMarkersArray = [];
+        for (var index = 0; index < errItem.length; index++) {
+          var marker = new google.maps.Marker({
+            position: errItem[index],
+            map: map
+          });
+          marker.setMap(map);
+          markersArray.push(marker);
+        }
+        markerClusterer = new MarkerClusterer(map, markersArray, {
+          TTStext: errItem[0].name,
+          imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+        });
+      };
+
+      errorClustering(errorItem[0], accMarkersArray, map);
+      errorClustering(errorItem[1], CCMarkersArray, map);
+      errorClustering(errorItem[2], CFMarkersArray, map);
+      errorClustering(errorItem[3], dccMarkersArray, map);
+      errorClustering(errorItem[4], LSLMarkersArray, map);
+      errorClustering(errorItem[5], rotationLMarkersArray, map);
+      errorClustering(errorItem[6], rotationRMarkersArray, map);
+      errorClustering(errorItem[7], SLMarkersArray, map);
+      errorClustering(errorItem[8], startMarkersArray, map);
+      errorClustering(errorItem[9], stopMarkersArray, map);
+      errorClustering(errorItem[10], uturnMarkersArray, map);
+
       // Stop the ion-refresher from spinning
     })
     .catch(function (error) {
       console.log("Error:", error);
     });
 
-  var accMarkersArray = [],
-    CCMarkersArray = [],
-    CFMarkersArray = [],
-    dccMarkersArray = [],
-    LSLMarkersArray = [],
-    rotationLMarkersArray = [],
-    rotationRMarkersArray = [],
-    SLMarkersArray = [],
-    startMarkersArray = [],
-    stopMarkersArray = [],
-    uturnMarkersArray = [];
-
+  var accMarkersArray = []
+  var CCMarkersArray = []
+  var CFMarkersArray = [];
+  var dccMarkersArray = [];
+  var LSLMarkersArray = [];
+  var rotationLMarkersArray = [];
+  var rotationRMarkersArray = [];
+  var SLMarkersArray = [];
+  var startMarkersArray = [];
+  var stopMarkersArray = [];
+  var uturnMarkersArray = [];
 
   // var obj2 = $firebaseObject(ref);
   // obj.$remove();
@@ -179,7 +205,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   // Start measurements when Cordova device is ready
 
   var madgwick = new AHRS({
-
     /*
      * The sample interval, in Hz.
      */
@@ -276,50 +301,12 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     if (cnt == 0) {
       // FIXME: remove inputLat, long, myLatlng, pointList
       var gpsSpeed = 0;
-
       var accuracy;
 
       $ionicLoading.show({
         template: '<ion-spinner icon="bubbles"></ion-spinner><br/>data calibarion!'
       });
 
-
-
-      var errorItem = errorRecords.all();
-
-      // alert(errorItem[0]);
-
-      function errorClustering(errItem, markersArray, map) {
-        var tempMarkersArray = [];
-        for (var index = 0; index < errItem.length; index++) {
-          var marker = new google.maps.Marker({
-            position: errItem[index],
-            map: map
-          });
-          marker.setMap(map);
-          markersArray.push(marker);
-        }
-        markerClusterer = new MarkerClusterer(map, markersArray, {
-          TTStext: errItem[0].name
-        });
-      };
-
-      errorClustering(errorItem[0], accMarkersArray, map);
-      errorClustering(errorItem[1], CCMarkersArray, map);
-      errorClustering(errorItem[2], CFMarkersArray, map);
-      errorClustering(errorItem[3], dccMarkersArray, map);
-      errorClustering(errorItem[4], LSLMarkersArray, map);
-      errorClustering(errorItem[5], rotationLMarkersArray, map);
-      errorClustering(errorItem[6], rotationRMarkersArray, map);
-      errorClustering(errorItem[7], SLMarkersArray, map);
-      errorClustering(errorItem[8], startMarkersArray, map);
-      errorClustering(errorItem[9], stopMarkersArray, map);
-      errorClustering(errorItem[10], uturnMarkersArray, map);
-
-      /* FIXME: inputLat -> lati
-              : pointList -> positionList
-              :  
-       */
       function geo_success(position) {
         lati = position.coords.latitude;
         long = position.coords.longitude;
@@ -375,15 +362,11 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
       $scope.watch3 = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
 
-
       var MaxQueue = ($scope.measurements.second * 200) / $scope.options.frequency;
       var errorRate = 0.04 / secondCnt;
 
-
       for (var i = 0; i < MaxQueue; i++)
         compareQueue.push(0);
-
-
 
       // Device motion configuration
       $scope.watch = $cordovaDeviceMotion.watchAcceleration($scope.options);
@@ -398,8 +381,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         x_a = result.x;
         y_a = result.y;
         z_a = result.z;
-
-
       });
 
 
@@ -858,8 +839,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     mixBut.style.backgroundColor = "#4CAF50";
 
   }
-
-
 
   $scope.$on('$ionicView.beforeLeave', function () {});
 

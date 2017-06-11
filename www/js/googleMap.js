@@ -84,7 +84,7 @@ function MarkerClusterer(map, opt_markers, opt_options) {
    */
   this.clusters_ = [];
   this.clustersCoord = [];
-  this.sizes = [60, 63, 68, 78, 90];
+  this.sizes = [53, 56, 66, 78, 90];
   /**
    * @private
    */
@@ -101,28 +101,28 @@ function MarkerClusterer(map, opt_markers, opt_options) {
    * @type {number}
    * @private
    */
-  this.gridSize_ = options['gridSize'] || 80;
+  this.gridSize_ = options['gridSize'] || 60;
   /**
    * @private
    */
-  this.minClusterSize_ = options['minimumClusterSize'] || 3;
+  this.minClusterSize_ = options['minimumClusterSize'] || 2;
   /**
    * @type {?number}
    * @private
    */
-  this.TTStext_ = (options['TTStext'] + ',구간입니다,,안전운전 하시기 바랍니다.') || '위험 구간입니다.'
+  this.TTStext_ = (options['TTStext'] + ',구간입니다,,안전운전 하시기 바랍니다.' ) || '위험 구간입니다.'
   this.maxZoom_ = options['maxZoom'] || null;
-  this.styles_ = options['styles'] || [];
+  // this.styles_ = options['styles'] || [];
   /**
    * @type {string}
    * @private
    */
-  this.imagePath_ = options['imagePath'] || this.MARKER_CLUSTER_IMAGE_PATH_;
+  // this.imagePath_ = options['imagePath'] || this.MARKER_CLUSTER_IMAGE_PATH_;
   /**
    * @type {string}
    * @private
    */
-  this.imageExtension_ = options['imageExtension'] || this.MARKER_CLUSTER_IMAGE_EXTENSION_;
+  // this.imageExtension_ = options['imageExtension'] || this.MARKER_CLUSTER_IMAGE_EXTENSION_;
   /**
    * @type {boolean}
    * @private
@@ -142,15 +142,16 @@ function MarkerClusterer(map, opt_markers, opt_options) {
   //TODO: option End
 
 
-  this.setupStyles_();
+  // this.setupStyles_();
   this.setMap(map);
   /**
    * @type {number}
    * @private
    */
-  this.prevZoom_ = this.map_.getZoom();
+  // this.prevZoom_ = this.map_.getZoom();
   // Add the map event listeners
   var that = this;
+  /*
   google.maps.event.addListener(this.map_, 'zoom_changed', function () {
     var zoom = that.map_.getZoom();
 
@@ -159,6 +160,7 @@ function MarkerClusterer(map, opt_markers, opt_options) {
       that.resetViewport();
     }
   });
+  */
   // transition map
   google.maps.event.addListener(this.map_, 'idle', function () {
 
@@ -235,7 +237,6 @@ MarkerClusterer.prototype.setupStyles_ = function () {
 
   for (var i = 0, size; size = this.sizes[i]; i++) {
     this.styles_.push({
-      url: this.imagePath_ + (i + 1) + '.' + this.imageExtension_,
       height: size,
       width: size
     });
@@ -720,19 +721,19 @@ MarkerClusterer.prototype.redraw = function () {
   var map_lat = this.map_.getCenter().lat();
   var map_lng = this.map_.getCenter().lng();
 
-  // var myLatlng = new google.maps.LatLng(map_lat, map_lng);
+  var myLatlng = new google.maps.LatLng(map_lat, map_lng);
 
-  // // FIXME: current Position
-  // // 나중에 삭제
+  // FIXME: current Position
+  // 나중에 삭제
 
-  // var currentPosition = new google.maps.Marker({
-  //   position: myLatlng,
-  //   map: this.map_,
-  //   icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
-  // });
+  var currentPosition = new google.maps.Marker({
+    position: myLatlng,
+    map: this.map_,
+    icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+  });
 
-  // this.currentPosition = currentPosition;
-  // this.currentPosition.setMap(this.map_);
+  this.currentPosition = currentPosition;
+  this.currentPosition.setMap(this.map_);
 
 
   for (var indexOfCluster = 0; indexOfCluster < this.clusters_.length; indexOfCluster++) {
@@ -755,7 +756,7 @@ MarkerClusterer.prototype.redraw = function () {
     console.log(element_lat);
     console.log(element_lng);
     console.log(distanceBetweenPositionAndCluster);
-    if (distanceBetweenPositionAndCluster < 0.3 && !(this.clusters_[indexOfCluster].getTTS_()) && this.clusters_[indexOfCluster].getMarkersLength_() > 2) {
+    if (distanceBetweenPositionAndCluster < 0.3 && !(this.clusters_[indexOfCluster].getTTS_())) {
 
       TTS
         .speak({
@@ -846,18 +847,16 @@ MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
     console.log(cluster);
     console.log(this.clustersCoord);
 
-    // // Cluster Marker
-    // var myLatlng = new google.maps.LatLng(cluster.getCenter().lat(), cluster.getCenter().lng());
+    var myLatlng = new google.maps.LatLng(cluster.getCenter().lat(), cluster.getCenter().lng());
 
-    // // FIXME: current Position
-    // // 나중에 삭제
-    // var clusterPosition = new google.maps.Marker({
-    //   position: myLatlng,
-    //   map: this.map_,
-    //   icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
-    // });
+    // FIXME: current Position
+    // 나중에 삭제
+    var clusterPosition = new google.maps.Marker({
+      position: myLatlng,
+      map: this.map_
+    });
 
-    // clusterPosition.setMap(this.map_);
+    clusterPosition.setMap(this.map_);
   }
 };
 
@@ -933,9 +932,6 @@ Cluster.prototype.setTTS_ = function (TTSstate) {
   this.TTS_ = TTSstate;
 };
 
-Cluster.prototype.getMarkersLength_ = function () {
-  return this.markers_.length;
-};
 
 /**
  * Determins if a marker is already added to the cluster.
@@ -1002,7 +998,7 @@ Cluster.prototype.addMarker = function (marker) {
   if (len >= this.minClusterSize_) {
     marker.setMap(null);
   }
-  this.updateIcon();
+
   return true;
 };
 

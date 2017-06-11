@@ -88,8 +88,6 @@ app.factory('errorRecords', function () {
     },
     push: function (value) {
       items.push(value);
-      console.log("item");
-      console.log(items);
     },
     setId: function (id_){
       id = id_;

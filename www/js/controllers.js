@@ -132,6 +132,32 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   var keepGoing = true;
   var errorCnt = 0;
 
+  function addInfoWindow(marker, message) {
+    var infoWindow = new google.maps.InfoWindow({
+      content: message
+    });
+    google.maps.event.addListener(marker, 'click', function () {
+      infoWindow.open(map, marker);
+    });
+  };
+
+  function errorClustering(errItem, index, map) {
+    var tempMarkersArray = [];
+    for (var index = 0; index < errItem.length; index++) {
+      var marker = new google.maps.Marker({
+        position: errItem[index],
+        map: map
+      });
+      marker.setMap(map);
+      tempMarkersArray.push(marker);
+    }
+    clusterMarkersArray.push(tempMarkersArray);
+    markerClusterer = new MarkerClusterer(map, clusterMarkersArray[clusterMarkersArray.length - 1], {
+      TTStext: errItem[0].name,
+      imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+    });
+  };
+
   errorList.$loaded()
     .then(function (x) {
       errorRecords.clear();
@@ -149,55 +175,21 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         keepGoing = true;
       })
 
-
       var errorItem = errorRecords.all();
 
-      // alert(errorItem[0]);
-      function errorClustering(errItem, markersArray, map) {
-        var tempMarkersArray = [];
-        for (var index = 0; index < errItem.length; index++) {
-          var marker = new google.maps.Marker({
-            position: errItem[index],
-            map: map
-          });
-          marker.setMap(map);
-          markersArray.push(marker);
-        }
-        markerClusterer = new MarkerClusterer(map, markersArray, {
-          TTStext: errItem[0].name,
-          imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-        });
-      };
+     
+      for (var k = 0; k < 11; k++) {
+        errorClustering(errorItem[k], k, map);
+      }
 
-      errorClustering(errorItem[0], accMarkersArray, map);
-      errorClustering(errorItem[1], CCMarkersArray, map);
-      errorClustering(errorItem[2], CFMarkersArray, map);
-      errorClustering(errorItem[3], dccMarkersArray, map);
-      errorClustering(errorItem[4], LSLMarkersArray, map);
-      errorClustering(errorItem[5], rotationLMarkersArray, map);
-      errorClustering(errorItem[6], rotationRMarkersArray, map);
-      errorClustering(errorItem[7], SLMarkersArray, map);
-      errorClustering(errorItem[8], startMarkersArray, map);
-      errorClustering(errorItem[9], stopMarkersArray, map);
-      errorClustering(errorItem[10], uturnMarkersArray, map);
-
+      console.log(clusterMarkersArray);
       // Stop the ion-refresher from spinning
     })
     .catch(function (error) {
       console.log("Error:", error);
     });
 
-  var accMarkersArray = []
-  var CCMarkersArray = []
-  var CFMarkersArray = [];
-  var dccMarkersArray = [];
-  var LSLMarkersArray = [];
-  var rotationLMarkersArray = [];
-  var rotationRMarkersArray = [];
-  var SLMarkersArray = [];
-  var startMarkersArray = [];
-  var stopMarkersArray = [];
-  var uturnMarkersArray = [];
+  var clusterMarkersArray = [];
 
   // var obj2 = $firebaseObject(ref);
   // obj.$remove();
@@ -1492,7 +1484,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + locations.dateRecord + '</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
-    markerClusterer = new MarkerClusterer(map, markersArray, null);
+    // markerClusterer = new MarkerClusterer(map, markersArray, null);
 
   }
 

@@ -111,6 +111,7 @@ function MarkerClusterer(map, opt_markers, opt_options) {
    * @private
    */
   this.TTStext_ = (options['TTStext'] + ',구간입니다,,안전운전 하시기 바랍니다.') || '위험 구간입니다.'
+
   this.maxZoom_ = options['maxZoom'] || null;
   this.styles_ = options['styles'] || [];
   /**
@@ -542,10 +543,6 @@ MarkerClusterer.prototype.getTotalClustersCenter = function () {
   for (var index = 0; index < this.clusters_.length; index++) {
     var elementCluster = this.clusters_[index];
 
-    // FIXME:
-    // console.log(elementCluster.getCenter());
-    // console.log(elementCluster.lat());
-    // console.log(elementCluster.lng());
   }
   return;
 };
@@ -716,7 +713,6 @@ MarkerClusterer.prototype.repaint = function () {
  * TODO:
  */
 MarkerClusterer.prototype.redraw = function () {
-  console.log("----------------------");
   var map_lat = this.map_.getCenter().lat();
   var map_lng = this.map_.getCenter().lng();
 
@@ -730,10 +726,8 @@ MarkerClusterer.prototype.redraw = function () {
   //   map: this.map_,
   //   icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
   // });
-
   // this.currentPosition = currentPosition;
   // this.currentPosition.setMap(this.map_);
-
 
   for (var indexOfCluster = 0; indexOfCluster < this.clusters_.length; indexOfCluster++) {
 
@@ -747,16 +741,17 @@ MarkerClusterer.prototype.redraw = function () {
     /*
       Defined cluster
     */
-    console.log("map Centerr");
-    console.log(map_lat);
-    console.log(map_lng);
+    // console.log("map Centerr");
+    // console.log(map_lat);
+    // console.log(map_lng);
 
-    console.log("getcenter");
-    console.log(element_lat);
-    console.log(element_lng);
-    console.log(distanceBetweenPositionAndCluster);
+    // console.log("getcenter");
+    // console.log(element_lat);
+    // console.log(element_lng);
+    // console.log(distanceBetweenPositionAndCluster);
     if (distanceBetweenPositionAndCluster < 0.3 && !(this.clusters_[indexOfCluster].getTTS_()) && this.clusters_[indexOfCluster].getMarkersLength_() > 2) {
 
+      console.log("TTS" + this.TTStext_);
       TTS
         .speak({
           text: this.TTStext_,
@@ -769,7 +764,6 @@ MarkerClusterer.prototype.redraw = function () {
         });
 
       this.clusters_[indexOfCluster].setTTS_(true);
-
     }
     if (distanceBetweenPositionAndCluster >= 1 && this.clusters_[indexOfCluster].getTTS_()) {
       this.clusters_[indexOfCluster].setTTS_(false);
@@ -836,15 +830,14 @@ MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
     cluster.addMarker(marker);
     this.clusters_.push(cluster);
     //FIXME: 여기서 변경
-    // 
-    console.log("map Centerr");
-    console.log(this.map_.getCenter().lat());
-    console.log(this.map_.getCenter().lng());
-    console.log("getcenter");
-    console.log(cluster.getCenter().lat());
-    console.log(cluster.getCenter().lng());
-    console.log(cluster);
-    console.log(this.clustersCoord);
+    // console.log("map Centerr");
+    // console.log(this.map_.getCenter().lat());
+    // console.log(this.map_.getCenter().lng());
+    // console.log("getcenter");
+    // console.log(cluster.getCenter().lat());
+    // console.log(cluster.getCenter().lng());
+    // console.log(cluster);
+    // console.log(this.clustersCoord);
 
     // // Cluster Marker
     // var myLatlng = new google.maps.LatLng(cluster.getCenter().lat(), cluster.getCenter().lng());
@@ -983,8 +976,6 @@ Cluster.prototype.addMarker = function (marker) {
 
   marker.isAdded = true;
   this.markers_.push(marker);
-  console.log(this.markers_);
-
 
   var len = this.markers_.length;
   if (len < this.minClusterSize_ && marker.getMap() != this.map_) {

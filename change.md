@@ -5,3 +5,5 @@
 
 
 animated infinite bounce
+
+git config core.autocrlf true

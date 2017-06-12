@@ -11,13 +11,17 @@
         Cancel
     </button>
   </ion-header-bar>
-  <ion-content class="padding">
-    <!--<br><br><br><br><br><br><br><br>-->
-    <div class="row">
-      <div class="col col-33 col-offset-25"><input type="button" id="mixBut" value="Start" /></div>
-    </div>
-    <div id="errormap" style="width:100%; height:300px;"></div>
-    <!--<h6>test : {{measurements.test}}</h6>
-    <h6>test : {{measurements.test2}}</h6>
-    <h6>test : {{measurements.test3}}</h6>-->
+  
+  <ion-pane class="i-content" style="height:100%">
+    <!--<ion-grid>
+      <ion-row>-->
+        <div id="map" style="height:80%;"></div>
+     <!--</ion-row>-->
+      <!--<ion-row style="height:20%; padding-bottom:48px;" >-->
+        <button class="button button-positive" ng-click="trackerInit()">
+          <i class="icon ion-ios-loop-strong" ></i>
+        </button>
+      <!--</ion-row>
+    </ion-grid>-->
+  </ion-pane>
 </ion-view>

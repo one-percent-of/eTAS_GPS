@@ -67,7 +67,7 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
   };
   //--------------------------------------------
 });
-app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseArray, $ionicLoading, $cordovaGeolocation, RealTime) {
+app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDelegate, $cordovaDeviceMotion, $deviceGyroscope, $firebaseArray, $ionicLoading, $cordovaGeolocation, RealTime, errorRecords) {
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
   };
@@ -92,12 +92,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   $scope.watch2 = null;
   $scope.watch3 = null;
 
-
-
   const beta = 0.033;
   const gravity = 9.80665;
   const speedLimit = 80;
-
 
   var obj = {
     accVel: 0,
@@ -116,6 +113,87 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     LSL: 0
   };
 
+  /*
+    Clustering
+  */
+  // Draw Map
+  var lat = 37.281;
+  var long = 127.041;
+  var myLatlng = new google.maps.LatLng(lat, long);
+  var mapOption = {
+    center: myLatlng,
+    zoom: 16,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  var map = new google.maps.Map(document.getElementById("errormap"), mapOption);
+
+  var errorRef = firebase.database().ref("errorList");
+  var errorList = $firebaseArray(errorRef);
+  var keepGoing = true;
+  var errorCnt = 0;
+
+  function addInfoWindow(marker, message) {
+    var infoWindow = new google.maps.InfoWindow({
+      content: message
+    });
+    google.maps.event.addListener(marker, 'click', function () {
+      infoWindow.open(map, marker);
+    });
+  };
+
+  function errorClustering(errItem, index, map) {
+    var tempMarkersArray = [];
+    for (var index = 0; index < errItem.length; index++) {
+      var marker = new google.maps.Marker({
+        position: errItem[index],
+        map: map
+      });
+      marker.setMap(map);
+      tempMarkersArray.push(marker);
+
+      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + errItem[0].name + '</h4>' + '</div>';
+      addInfoWindow(marker, contentString);
+      //w
+    }
+    clusterMarkersArray.push(tempMarkersArray);
+    markerClusterer = new MarkerClusterer(map, clusterMarkersArray[clusterMarkersArray.length - 1], {
+      TTStext: errItem[0].name,
+      imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+    });
+  };
+
+  errorList.$loaded()
+    .then(function (x) {
+      errorRecords.clear();
+      errorCnt = 0;
+
+      angular.forEach(x, function (x) {
+        if (keepGoing) {
+          if (errorCnt == errorList.length) {
+            keepGoing = false;
+          }
+          x.id = errorCnt;
+          errorRecords.push(x);
+          errorCnt++;
+        }
+        keepGoing = true;
+      })
+
+      var errorItem = errorRecords.all();
+
+
+      for (var k = 0; k < 11; k++) {
+        errorClustering(errorItem[k], k, map);
+      }
+
+      console.log(clusterMarkersArray);
+      // Stop the ion-refresher from spinning
+    })
+    .catch(function (error) {
+      console.log("Error:", error);
+    });
+
+  var clusterMarkersArray = [];
 
   // var obj2 = $firebaseObject(ref);
   // obj.$remove();
@@ -123,7 +201,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
   // Start measurements when Cordova device is ready
 
   var madgwick = new AHRS({
-
     /*
      * The sample interval, in Hz.
      */
@@ -227,13 +304,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         template: '<ion-spinner icon="bubbles"></ion-spinner><br/>data calibarion!'
       });
 
-
-
-
-      /* FIXME: inputLat -> lati
-              : pointList -> positionList
-              :  
-       */
       function geo_success(position) {
         lati = position.coords.latitude;
         long = position.coords.longitude;
@@ -241,6 +311,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         accuracy = position.coords.accuracy;
 
         myLatlng = new google.maps.LatLng(lati, long);
+        map.setCenter(myLatlng);
         positionList.push({
           lat: lati,
           lng: long
@@ -274,42 +345,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         }
 
 
-
-        // if(speedA <0.3 && Math.abs(angularVel_cur) < 0.2){
-        //   obj.speed = 0;
-        // }
-
-
-        // $scope.measurements.test = speedList;
-
-        // FIXME: zoom: 18
-        //      : pointList -> positionList (ctrl + d)
-        //      : 
-        var mapOptions = {
-          center: myLatlng,
-          zoom: 18,
-          mapTypeId: google.maps.MapTypeId.ROADMAP
-        };
-        var polyOption = {
-          path: positionList,
-          geodesic: true,
-          strokeColor: 'red',
-          strokeOpacity: 1.0,
-          strokeWeight: 3.0,
-          icons: [{ //방향을 알기 위한 화살표 표시
-            icon: {
-              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
-            },
-            offset: '100%',
-            repeat: '150px'
-          }]
-        }
-
-        // FIXME: pathmap -> map
-        // var map = new google.maps.Map(document.getElementById("map"), mapOptions);
-        // var poly = new google.maps.Polyline(polyOption);
-        // poly.setMap(map);
-        // $scope.map = map;
       }
 
       function geo_error() {
@@ -324,16 +359,11 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
       $scope.watch3 = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
 
-
-
       var MaxQueue = ($scope.measurements.second * 200) / $scope.options.frequency;
       var errorRate = 0.04 / secondCnt;
 
-
       for (var i = 0; i < MaxQueue; i++)
         compareQueue.push(0);
-
-
 
       // Device motion configuration
       $scope.watch = $cordovaDeviceMotion.watchAcceleration($scope.options);
@@ -348,8 +378,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
         x_a = result.x;
         y_a = result.y;
         z_a = result.z;
-
-
       });
 
 
@@ -808,8 +836,6 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
     mixBut.style.backgroundColor = "#4CAF50";
 
   }
-
-
 
   $scope.$on('$ionicView.beforeLeave', function () {});
 
@@ -1285,10 +1311,6 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
         console.log("Error:", error);
       });
   }
-  $scope.removeProvider = function (name) {
-    console.log(list);
-    console.log(name);
-  };
 
   $scope.load();
 });
@@ -1398,7 +1420,6 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   var map = new google.maps.Map(document.getElementById("map"), mapOption);
   var poly = new google.maps.Polyline();
 
-
   // Draw Map function
   function drawMarker() {
     // Set center and zoom
@@ -1458,7 +1479,6 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
     for (var i = 0; i < locations.errorList.length; i++) {
       var marker = new google.maps.Marker({
         position: locations.errorList[i],
-        // label: labels[i++ % labels.length],
         map: map,
       })
       marker.setMap(map);
@@ -1469,10 +1489,8 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
       var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + locations.dateRecord + '</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
+    // markerClusterer = new MarkerClusterer(map, markersArray, null);
 
-    // markerClusterer = new MarkerClusterer(map, markersArray, {
-    //   imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-    // });
   }
 
   // FIXME: pathSvc -> Records
@@ -1487,7 +1505,6 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   }, true);
 
 });
-// FIXME: 전체
 app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
@@ -1502,4 +1519,10 @@ app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
       $scope.user = user;
     },
     function (error) {});
+});
+app.filter('reverse', function () {
+  return function (items) {
+    // return items.slice().reverse();
+    return items;
+  };
 });

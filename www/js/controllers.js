@@ -153,6 +153,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
       var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + errItem[0].name + '</h4>' + '</div>';
       addInfoWindow(marker, contentString);
+      //w
     }
     clusterMarkersArray.push(tempMarkersArray);
     markerClusterer = new MarkerClusterer(map, clusterMarkersArray[clusterMarkersArray.length - 1], {

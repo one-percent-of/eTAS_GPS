@@ -1285,6 +1285,10 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
         console.log("Error:", error);
       });
   }
+  $scope.removeProvider = function (name) {
+    console.log(list);
+    console.log(name);
+  };
 
   $scope.load();
 });
@@ -1498,9 +1502,4 @@ app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
       $scope.user = user;
     },
     function (error) {});
-});
-app.filter('reverse', function () {
-  return function (items) {
-    return items.slice().reverse();
-  };
 });

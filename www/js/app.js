@@ -49,7 +49,7 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
 
 
   $ionicConfigProvider.backButton.previousTitleText(false);
-  $ionicConfigProvider.backButton.text('기록')
+  $ionicConfigProvider.backButton.text('기록');
 
 
 

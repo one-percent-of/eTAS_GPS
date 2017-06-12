@@ -8,9 +8,11 @@
   background: linear-gradient(to right, rgba(43, 42, 42, 1) 0%, rgba(33, 33, 33, 1) 45%, rgba(43, 42, 42, 1) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#499bea', endColorstr='#499bea', GradientType=1);
 }
-.main-content{
-  margin-top:30px;
+
+.main-content {
+  margin-top: 30px;
 }
+
 .app-logo {
   max-width: 100px;
   margin: auto;

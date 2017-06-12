@@ -180,6 +180,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
       })
 
       var errorItem = errorRecords.all();
+      errorRecords.stateChange();
 
 
       for (var k = 0; k < 11; k++) {
@@ -417,7 +418,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             if (!!GPSQueue[1]) {
 
               $scope.measurements.test = (GPSQueue[1] == GPSQueue[0]);
-              if (GPSQueue[1] == GPSQueue[0]) {
+              if (GPSQueue[1] == GPSQueue[0] && speedA < 1) {
 
                 obj.speed = 0;
                 accG = obj.accVel = 0 - speedGQueue[0];
@@ -443,20 +444,20 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
 
 
-          // //gravity compensation
-          // x_a -= gravity * (2 * (tmpQ.x * tmpQ.z - tmpQ.w * tmpQ.y));
-          // y_a -= gravity * (2 * (tmpQ.w * tmpQ.x + tmpQ.y * tmpQ.z));
-          // z_a -= gravity * (tmpQ.w * tmpQ.w - tmpQ.x * tmpQ.x - tmpQ.y * tmpQ.y + tmpQ.z * tmpQ.z);
+          //gravity compensation
+          x_a -= gravity * (2 * (tmpQ.x * tmpQ.z - tmpQ.w * tmpQ.y));
+          y_a -= gravity * (2 * (tmpQ.w * tmpQ.x + tmpQ.y * tmpQ.z));
+          z_a -= gravity * (tmpQ.w * tmpQ.w - tmpQ.x * tmpQ.x - tmpQ.y * tmpQ.y + tmpQ.z * tmpQ.z);
 
-          // accQueue.push(Math.sqrt(Math.pow(x_a, 2) + Math.pow(y_a, 2) + Math.pow(z_a, 2)));
+          accQueue.push(Math.sqrt(Math.pow(x_a, 2) + Math.pow(y_a, 2) + Math.pow(z_a, 2)));
 
 
 
-          // //speed calculate
-          // let sum = acc / secondCnt;
-          // speedA += sum;
-          // if (speedA < 0)
-          //   speedA = 0;
+          //speed calculate
+          let sum = acc / secondCnt;
+          speedA += sum;
+          if (speedA < 0)
+            speedA = 0;
 
 
           //calibration
@@ -532,7 +533,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               // 다른 errorList와 name만 다릅니다!
               errorList.push({
                 name: '급좌회전',
-                // time: timeGQueue[1],
+                time: (cnt - 60) / 10,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -546,7 +547,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCnt3R++;
               errorList.push({
                 name: '급우회전',
-                // time: timeGQueue[1],
+                time: (cnt - 60) / 10,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -565,7 +566,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCnt6++;
               errorList.push({
                 name: '급유턴',
-                // time: timeGQueue[1],
+                time: (cnt - 60) / 10,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -581,7 +582,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntAcc++;
             errorList.push({
               name: '급가속',
-              // time: timeGQueue[1],
+              time: (cnt - 60) / 10,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -595,7 +596,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntStart++;
             errorList.push({
               name: '급출발',
-              // time: timeGQueue[1],
+              time: (cnt - 60) / 10,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -610,7 +611,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntDcc++;
             errorList.push({
               name: '급감속',
-              // time: timeGQueue[1],
+              time: (cnt - 60) / 10,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -625,7 +626,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntStop++;
             errorList.push({
               name: '급정지',
-              // time: timeGQueue[1],
+              time: (cnt - 60) / 10,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -641,7 +642,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCntCC++;
               errorList.push({
                 name: '급진로변경',
-                // time: timeGQueue[1],
+                time: (cnt - 60) / 10,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -652,7 +653,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCntCF++;
               errorList.push({
                 name: '급앞지르기',
-                // time: timeGQueue[1],
+                time: (cnt - 60) / 10,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -671,7 +672,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntSL++;
             errorList.push({
               name: '과속',
-              // time: timeGQueue[1],
+              time: (cnt - 60) / 10,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -691,7 +692,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCntLSL++;
               errorList.push({
                 name: '장기과속',
-                // time: timeGQueue[1],
+                time: (cnt - 60) / 10,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -1295,7 +1296,7 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
             }
             x.id = cnt;
             x.drivingTimeStr = x.drivingTime.toHHMMSS();
-            x.dateRecord = x.date.slice(0, 24);
+            x.dateRecord = printNow(Date.parse(x.date));
             Records.push(x);
             cnt++;
           }
@@ -1314,8 +1315,10 @@ app.controller('recordsCtrl', function ($scope, $ionicSideMenuDelegate, $firebas
 
   $scope.load();
 });
-app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGeolocation) {
+app.controller('recordCtrl', function ($scope, $stateParams, Records, $firebaseArray, $cordovaGeolocation) {
   $scope.item = Records.get($stateParams.recordId);
+  var ref = firebase.database().ref("record");
+  var list = $firebaseArray(ref);
   var startDate = Date.parse($scope.item.date) + 32400000;
   var recordGraph = Highcharts.chart('record', {
     chart: {
@@ -1424,12 +1427,12 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
   function drawMarker() {
     // Set center and zoom
     map.setCenter(myLatlng);
-    map.setZoom(13);
+    map.setZoom(12);
 
     // Draw Marker 
     // setMarkers(locations);
-    console.log("error");
-    console.log($scope.item);
+    // console.log("error");
+    // console.log($scope.item);
     setMarkers($scope.item);
 
     // Draw Path
@@ -1486,7 +1489,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
 
       console.log(locations);
 
-      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + locations.dateRecord + '</div>' + '</div>';
+      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + printNow(Date.parse(locations.date) + locations.errorList[i].time * 1000) + '</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
     // markerClusterer = new MarkerClusterer(map, markersArray, null);
@@ -1504,8 +1507,17 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $cordovaGe
     drawMarker();
   }, true);
 
+  $scope.removeProvider = function (id) {
+    list.$remove(list.$getRecord(id.$id)).then(function () {
+      Records.remove(id.id);
+      location.href = "#/tab/records";
+    });
+    // Records.remove(id.id);
+    // location.href = "#/tab/records";
+  };
+
 });
-app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
+app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate, errorRecords) {
   $scope.toggleLeft = function () {
     $ionicSideMenuDelegate.toggleLeft();
   };
@@ -1519,10 +1531,10 @@ app.controller('ProfileCtrl', function ($scope, ngFB, $ionicSideMenuDelegate) {
       $scope.user = user;
     },
     function (error) {});
-});
-app.filter('reverse', function () {
-  return function (items) {
-    // return items.slice().reverse();
-    return items;
-  };
+  $scope.$watch(function () {
+    return errorRecords.getState();
+  }, function (event) {
+
+    $scope.errorRecords = errorRecords.all();
+  }, true);
 });

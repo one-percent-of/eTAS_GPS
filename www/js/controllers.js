@@ -150,6 +150,9 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
       });
       marker.setMap(map);
       tempMarkersArray.push(marker);
+
+      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + errItem[0].name + '</h4>' + '</div>';
+      addInfoWindow(marker, contentString);
     }
     clusterMarkersArray.push(tempMarkersArray);
     markerClusterer = new MarkerClusterer(map, clusterMarkersArray[clusterMarkersArray.length - 1], {
@@ -177,7 +180,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
       var errorItem = errorRecords.all();
 
-     
+
       for (var k = 0; k < 11; k++) {
         errorClustering(errorItem[k], k, map);
       }

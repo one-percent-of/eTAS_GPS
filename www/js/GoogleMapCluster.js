@@ -752,6 +752,7 @@ MarkerClusterer.prototype.redraw = function () {
     if (distanceBetweenPositionAndCluster < 0.3 && !(this.clusters_[indexOfCluster].getTTS_()) && this.clusters_[indexOfCluster].getMarkersLength_() > 2) {
 
       console.log("TTS" + this.TTStext_);
+      this.clusters_[indexOfCluster].setTTS_(true);
       TTS
         .speak({
           text: this.TTStext_,
@@ -762,10 +763,9 @@ MarkerClusterer.prototype.redraw = function () {
         }, function (reason) {
           alert(reason);
         });
-
-      this.clusters_[indexOfCluster].setTTS_(true);
     }
     if (distanceBetweenPositionAndCluster >= 1 && this.clusters_[indexOfCluster].getTTS_()) {
+      console.log("FALSE");
       this.clusters_[indexOfCluster].setTTS_(false);
     }
   }

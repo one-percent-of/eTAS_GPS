@@ -2,6 +2,7 @@ app.factory('Records', function () {
   // Might use a resource here that returns a JSON array
 
   // Some fake testing data
+  var userEmail;
   var items = [];
   var id;
 
@@ -11,6 +12,12 @@ app.factory('Records', function () {
     },
     remove: function (id) {
       items.splice(items.indexOf(id), 1);
+    },
+    setEmail: function(email){
+      userEmail = email;
+    },
+    getEmail: function(){
+      return userEmail; 
     },
     get: function (recordId) {
       for (var i = 0; i < items.length; i++) {
@@ -31,6 +38,7 @@ app.factory('Records', function () {
     },
     clear : function(){
       items = [];
+      userEmail = null;
     }
   };
 });
@@ -69,7 +77,7 @@ app.factory('errorRecords', function () {
 
   // Some fake testing data
   var items = [];
-  var id;
+  var state = false;
 
   return {
     all: function () {
@@ -86,17 +94,19 @@ app.factory('errorRecords', function () {
       }
       return null;
     },
+    stateChange: function(){
+      if(state) state = false;
+      else state = true;
+    },
     push: function (value) {
       items.push(value);
     },
-    setId: function (id_){
-      id = id_;
-    },
-    getId : function(){
-      return id;
+    getState : function(){
+      return state;
     },
     clear : function(){
       items = [];
     }
   };
 });
+

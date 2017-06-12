@@ -4,6 +4,6 @@
 4. lightSpeedOut
 
 
-animated infinite bounce
+animated infinite bounceInLeft
 
 git config core.autocrlf true

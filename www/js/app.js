@@ -136,6 +136,14 @@ app.config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         }
       }
     })
+    .state('tab.dangerBehavior', {
+      url: '/dangerBehavior',
+      views: {
+        'tab-dangerBehavior': {
+          templateUrl: 'templates/tab-dangerBehavior.html'
+        }
+      }
+    })
     .state('app.profile', {
       url: "/profile",
       views: {

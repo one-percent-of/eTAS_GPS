@@ -1,0 +1,61 @@
+<ion-view view-title="측정">
+  <ion-nav-buttons side="left">
+    <button ng-click="toggleLeft()" class="button button-icon icon ion-navicon"></button>
+  </ion-nav-buttons>
+  <ion-header-bar align-title="left" class="item-input-inset">
+    <label class="item-input-wrapper">
+        <i class="icon ion-ios7-search placeholder-icon"></i>
+        <input type="search"/>        
+    </label>
+    <button class="button button-clear">
+        Cancel
+    </button>
+  </ion-header-bar>
+
+  <ion-content style="font-family:'BM JUA','배달의민족 주아',sans-serif;">
+    <div class="list card" style="padding:15px;text-align:center; ">
+      <h3 >위험 행동 안전 기준</h3>
+    </div>
+
+    <div class="list card" style="padding:15px; ">
+      <h4 style="text-align:center;">과속</h4>
+      <p>도로 제한 속도보다 20km/h 초과 운행한 경우</p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">장기과속</h4>
+      <p>도로 제한 속도보다 20km/h 초과 해서 3분 이상 운행한 경우</p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급가속</h4>
+      <p>6.0km/h 이상 속도에서 초당 8.0km/h 이상 가속 운행하는 경우</p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급출발</h4>
+      <p>5.0km/h 이하 속도에서 초당 10.0km/h 이상 가속 운행하는 경우</p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급감속</h4>
+      <p>초당 14.0km/h 이상 감속 운행하고 속도가 6.0km/h 이상인 경우 </p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급정지</h4>
+      <p>초당 14.0km/h 이상 감속하여 속도가 5.0km/h 이하가 된 경우 </p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급진로변경</h4>
+      <p>속도가 30km/h 이상에서 진행 방향이 좌/우측 10˚/sec 이상으로 차로변경하고, 5초동안 누적각도가 ±2˚/sec이하, 가감속이 초당 ±2km/h이하인 경우 </p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급앞지르기</h4>
+      <p>속도가 30km/h 이상에서 진행 방향이 좌/우측 10˚/sec 이상으로 차로변경하고, 5초동안 누적각도가 ±2˚/sec이하, 가속이 초당 ±3km/h이상인 경우 </p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급좌우회전</h4>
+      <p>속도가 30km/h 이상이고, 3초안에 좌/우측(누적회전각이 60˚ ~ 120˚범위)로 급회전 하는 경우</p>
+    </div>
+    <div class="list card" style="padding:15px;">
+      <h4 style="text-align:center;">급U턴</h4>
+      <p>속도가 25km/h 이상이고, 6초안에 좌/우측(누적회전각이 160˚ ~ 180˚범위)로 급회전 하는 경우</p>
+    </div>
+  </ion-content>
+</ion-view>

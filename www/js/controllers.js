@@ -1,4 +1,4 @@
-app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout, $location, $ionicPopup, ngFB) {
+app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout, $location, $ionicPopup, $rootScope, ngFB) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -10,6 +10,9 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
   // Form data for the login modal
   $scope.loginData = {};
 
+
+  $scope
+
   //--------------------------------------------
   $scope.login = function (user) {
 
@@ -18,11 +21,47 @@ app.controller('AppCtrl', function ($scope, $ionicModal, $ionicPopover, $timeout
       return false;
     }
 
-    if (user.username == 'demo@gmail.com' && user.password == 'demo') {
-      $location.path('/tab/measure');
-    } else {
-      $scope.showAlert('Invalid username or password.');
+    firebase.auth().signInWithEmailAndPassword(user.username, user.password)
+      .then(function (authData) {
+        $rootScope.authData = authData;
+        $rootScope.authData.loginType = "email";
+        $location.path('/tab/measure');
+        $scope.showAlert('You autorized!');
+      })
+      .catch(function (e) {
+        $scope.showAlert('Invalid username or password.');
+        lastWork = "signIn";
+        $("#error #errmsg").html(e.message);
+        return false;
+      });
+
+  };
+  //--------------------------------------------
+  $scope.signup = function (user) {
+
+    if (typeof (user) == 'undefined') {
+      $scope.showAlert('Please fill username and password to proceed.');
+      return false;
     }
+
+    if (user.pw != user.cf) {
+      $scope.showAlert("Password does not match the confirm password.");
+      return false;
+    }
+
+
+    firebase.auth().createUserWithEmailAndPassword(user.id, user.pw)
+      .then(function (authData) {
+        $rootScope.authData = authData;
+        $rootScope.authData.loginType = "email";
+        $scope.showAlert('Signed Up!');
+        $location.path('/app/login');
+      })
+      .catch(function (e) {
+        $("#error #errmsg").html(e.message);
+        return false;
+      });
+
 
   };
   //--------------------------------------------
@@ -418,7 +457,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             if (!!GPSQueue[1]) {
 
               $scope.measurements.test = (GPSQueue[1] == GPSQueue[0]);
-              if (GPSQueue[1] == GPSQueue[0] && speedA < 1) {
+              if (GPSQueue[1] == GPSQueue[0] && speedA < 0.2) {
 
                 obj.speed = 0;
                 accG = obj.accVel = 0 - speedGQueue[0];
@@ -489,13 +528,17 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
           //angularVel calculate
 
-          angularVel = compareQueue.slice(Math.round(MaxQueue * (3 / 6)), Math.round(MaxQueue * (4 / 6))).reduce(function (a, b) {
+          angularVel = compareQueue.slice(Math.round(MaxQueue * (2 / 6)), Math.round(MaxQueue * (3 / 6))).reduce(function (a, b) {
             return a + b;
           });
           //angularVelFor5 calculate
-
-          angularVelFor5 = compareQueue[MaxQueue - 1] - compareQueue[Math.round(MaxQueue / 6 - 1)];
-
+          
+          angularVelFor5 = 0;
+          for(var i = 1; i<6; i++){
+            angularVelFor5 += compareQueue.slice(Math.round(MaxQueue * (i / 6)), MaxQueue *((i+1) / 6)).reduce(function (a, b) {
+            return a + b;
+          });
+          }
 
 
           //error calculate
@@ -533,7 +576,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               // 다른 errorList와 name만 다릅니다!
               errorList.push({
                 name: '급좌회전',
-                time: (cnt - 60) / 10,
+                time: Date.parse(date) + (cnt - 60) * 100,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -547,7 +590,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCnt3R++;
               errorList.push({
                 name: '급우회전',
-                time: (cnt - 60) / 10,
+                time: Date.parse(date) + (cnt - 60) * 100,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -566,7 +609,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCnt6++;
               errorList.push({
                 name: '급유턴',
-                time: (cnt - 60) / 10,
+                time: Date.parse(date) + (cnt - 60) * 100,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -582,7 +625,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntAcc++;
             errorList.push({
               name: '급가속',
-              time: (cnt - 60) / 10,
+              time: Date.parse(date) + (cnt - 60) * 100,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -596,7 +639,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntStart++;
             errorList.push({
               name: '급출발',
-              time: (cnt - 60) / 10,
+              time: Date.parse(date) + (cnt - 60) * 100,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -611,7 +654,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntDcc++;
             errorList.push({
               name: '급감속',
-              time: (cnt - 60) / 10,
+              time: Date.parse(date) + (cnt - 60) * 100,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -626,7 +669,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntStop++;
             errorList.push({
               name: '급정지',
-              time: (cnt - 60) / 10,
+              time: Date.parse(date) + (cnt - 60) * 100,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -642,7 +685,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCntCC++;
               errorList.push({
                 name: '급진로변경',
-                time: (cnt - 60) / 10,
+                time: Date.parse(date) + (cnt - 60) * 100,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -653,7 +696,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCntCF++;
               errorList.push({
                 name: '급앞지르기',
-                time: (cnt - 60) / 10,
+                time: Date.parse(date) + (cnt - 60) * 100,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -672,7 +715,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             judgeCntSL++;
             errorList.push({
               name: '과속',
-              time: (cnt - 60) / 10,
+              time: Date.parse(date) + (cnt - 60) * 100,
               lat: lati,
               lng: long,
               number: judgeCntSL
@@ -692,7 +735,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               judgeCntLSL++;
               errorList.push({
                 name: '장기과속',
-                time: (cnt - 60) / 10,
+                time: Date.parse(date) + (cnt - 60) * 100,
                 lat: lati,
                 lng: long,
                 number: judgeCntSL
@@ -1489,7 +1532,7 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $firebaseA
 
       console.log(locations);
 
-      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + printNow(Date.parse(locations.date) + locations.errorList[i].time * 1000) + '</div>' + '</div>';
+      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + printNow(locations.errorList[i].time) + '</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
     // markerClusterer = new MarkerClusterer(map, markersArray, null);

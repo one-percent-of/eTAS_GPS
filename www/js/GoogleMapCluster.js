@@ -110,7 +110,7 @@ function MarkerClusterer(map, opt_markers, opt_options) {
    * @type {?number}
    * @private
    */
-  this.TTStext_ = (options['TTStext'] + ',구간입니다,,안전운전 하시기 바랍니다.') || '위험 구간입니다.'
+  this.TTStext_ = (options['TTStext'] + ',다발 구간입니다. 안전운전 하시기 바랍니다.') || '위험 구간입니다.'
 
   this.maxZoom_ = options['maxZoom'] || null;
   this.styles_ = options['styles'] || [];

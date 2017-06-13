@@ -19,4 +19,4 @@
 7. cordova run android
 
 ## Simulation
-https://youtu.be/W95uLc0jgCo
+https://youtu.be/LseT09-bybU

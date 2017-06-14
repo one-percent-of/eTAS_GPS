@@ -635,7 +635,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             obj.acc = judgeCntAcc;
           }
           //Quick start judge
-          if (cnt - judgeTimeStart > secondCnt * 3 && speedQ[0] <= 5 && accG >= 8) {
+          if (cnt - judgeTimeStart > secondCnt * 3 && speedQ[0] <= 5 && accG >= 10) {
             judgeCntStart++;
             errorList.push({
               name: '급출발',
@@ -692,7 +692,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
               });
             }
 
-            if (accG >= 2) {
+            if (accG >= 3) {
               judgeCntCF++;
               errorList.push({
                 name: '급앞지르기',
@@ -727,11 +727,11 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           }
 
           //Long-tern Speeding judge
-          if (obj.speed >= 70) {
+          if (obj.speed >= speedLimit) {
 
             CntLSL++;
 
-            if (cnt - judgeTimeLSL > secondCnt * 3 && CntLSL >= secondCnt * 3) {
+            if (cnt - judgeTimeLSL > secondCnt * 3 && CntLSL >= secondCnt * 180) {
               judgeCntLSL++;
               errorList.push({
                 name: '장기과속',
@@ -1470,13 +1470,12 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $firebaseA
   function drawMarker() {
     // Set center and zoom
     map.setCenter(myLatlng);
-    map.setZoom(12);
+    map.setZoom(13);
 
     // Draw Marker 
     // setMarkers(locations);
     // console.log("error");
-    // console.log($scope.item);
-    setMarkers($scope.item);
+    setMarkers($scope.item.errorList);
 
     // Draw Path
     var polyOption = {
@@ -1522,17 +1521,17 @@ app.controller('recordCtrl', function ($scope, $stateParams, Records, $firebaseA
   }
   // sets the map on all markers in the array.
   function setMarkers(locations) {
-    for (var i = 0; i < locations.errorList.length; i++) {
+    for (var i = 0; i < locations.length; i++) {
       var marker = new google.maps.Marker({
-        position: locations.errorList[i],
+        position: locations[i],
         map: map,
       })
       marker.setMap(map);
       markersArray.push(marker);
 
-      console.log(locations);
+      // console.log(locations);
 
-      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations.errorList[i].name + '</h4>' + '<div>' + printNow(locations.errorList[i].time) + '</div>' + '</div>';
+      var contentString = '<div id="content" style="margin-top:0px; padding-top:0px; box-shadow: none" >' + '<h4>' + locations[i].name + '</h4>' + '<div>' + printNow(locations[i].time) + '</div>' + '</div>';
       addInfoWindow(marker, contentString);
     }
     // markerClusterer = new MarkerClusterer(map, markersArray, null);

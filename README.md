@@ -20,3 +20,6 @@
 
 ## Simulation
 https://youtu.be/aJdWnlV1NOw
+
+## License
+MIT

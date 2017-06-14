@@ -620,7 +620,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             }
           }
 
-          //급가속
+          //Acceleration judge
           if (cnt - judgeTimeAcc > MaxQueue && obj.speed >= 6 && accG >= 8) {
             judgeCntAcc++;
             errorList.push({
@@ -634,7 +634,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
             obj.acc = judgeCntAcc;
           }
-          //급출발
+          //Quick start judge
           if (cnt - judgeTimeStart > secondCnt * 3 && speedQ[0] <= 5 && accG >= 8) {
             judgeCntStart++;
             errorList.push({
@@ -649,7 +649,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             obj.start = judgeCntStart;
           }
 
-          //급감속
+          //Deceleration judge
           if (cnt - judgeTimeDcc > MaxQueue && obj.speed >= 6 && accG <= -14) {
             judgeCntDcc++;
             errorList.push({
@@ -664,7 +664,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             obj.dcc = judgeCntDcc;
           }
 
-          //급정지
+          //Emergency stop judge
           if (cnt - judgeTimeStop > secondCnt * 3 && obj.speed <= 5 && accG <= -14) {
             judgeCntStop++;
             errorList.push({
@@ -679,7 +679,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             obj.stop = judgeCntStop;
           }
 
-          //급진로변경 && 급앞지르기
+          //Change course && Advance judge
           if (cnt - judgeTimeCC > secondCnt * 5 && obj.speed >= 30 && Math.abs(angularVel) >= 10 && Math.abs(angularVelFor5) <= 2) {
             if (Math.abs(accG) <= 2) {
               judgeCntCC++;
@@ -710,7 +710,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
 
           }
 
-          //과속
+          //Speeding judge
           if (cnt - judgeTimeSL > secondCnt * 3 && obj.speed >= speedLimit) {
             judgeCntSL++;
             errorList.push({
@@ -726,7 +726,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
             obj.SL = judgeCntSL;
           }
 
-          //장기과속
+          //Long-tern Speeding judge
           if (obj.speed >= 70) {
 
             CntLSL++;
@@ -749,7 +749,7 @@ app.controller('measureCtrl', function ($scope, $ionicPlatform, $ionicSideMenuDe
           }
 
 
-          //데이터 저장
+          //Data storage
           rotationAng.push(sum3.toFixed(2));
           uturnAng.push(sum6.toFixed(2));
           rotationCntL.push(judgeCnt3L);

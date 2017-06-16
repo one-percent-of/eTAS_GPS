@@ -19,7 +19,7 @@
 7. cordova run android
 
 ## Simulation
-https://youtu.be/aJdWnlV1NOw
+[![](http://i.imgur.com/ZQx7yqG.png)](https://youtu.be/aJdWnlV1NOw)
 
 ## License
 MIT

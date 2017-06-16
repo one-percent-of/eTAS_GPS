@@ -20,6 +20,3 @@
 
 ## Simulation
 [![](http://i.imgur.com/ZQx7yqG.png)](https://youtu.be/aJdWnlV1NOw)
-
-## License
-MIT

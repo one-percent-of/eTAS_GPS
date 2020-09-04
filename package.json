@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "IonicDeviceMotionDemo: An Ionic project",
     "dependencies": {
-        "cordova-plugin-inappbrowser": "^1.7.1",
+        "cordova-plugin-inappbrowser": "^4.0.0",
         "cordova-plugin-splashscreen": "^4.0.3",
         "cordova-plugin-tts": "^0.2.3",
         "gulp": "^3.5.6",
